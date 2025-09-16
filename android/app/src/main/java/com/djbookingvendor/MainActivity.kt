@@ -1,4 +1,4 @@
-package com.djbookingvendor
+package com.djbooking.vendor
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate

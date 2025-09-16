@@ -1,4 +1,4 @@
-package com.djbookingvendor
+package com.djbooking.vendor
 
 import android.app.Application
 import com.facebook.react.PackageList

@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "964376588631",
+    "project_id": "tisabooking-758cd",
+    "storage_bucket": "tisabooking-758cd.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:964376588631:android:bbcb034fb5381aaa168e12",
+        "android_client_info": {
+          "package_name": "com.djbooking.user"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD7UgrIVErWjYvUrt0CZ7plLiIxjAC2HKg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:964376588631:android:7ef11dc96514e745168e12",
+        "android_client_info": {
+          "package_name": "com.djbooking.vendor"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD7UgrIVErWjYvUrt0CZ7plLiIxjAC2HKg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
