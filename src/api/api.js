@@ -131,3 +131,28 @@ export const boostedAmount = async (locality_id,category_id,header) => {
 export const saveFCMToken = async (data, header) => {
     return await commonrequest('POST', `${API_BASE_URL}/save-firebase-token`, data, header);
 };
+
+
+export const getNotifications = async (header) => {
+    return await commonrequest('GET', `${API_BASE_URL}/notifications`, '', header);
+};
+
+export const markNotificationAsRead = async (id,data, header) => {
+    return await commonrequest('POST', `${API_BASE_URL}/notifications/mark-as-read/${id}`, data, header);
+};
+
+export const markAllNotificationsAsRead = async (header) => {
+    return await commonrequest('POST', `${API_BASE_URL}/notifications/mark-all-as-read`, '', header);
+};
+
+export const notificationDelete = async (id, header) => {
+    return await commonrequest('DELETE', `${API_BASE_URL}/notifications/${id}`, '', header);
+};
+
+export const notificationCount = async (header) => {
+    return await commonrequest('GET', `${API_BASE_URL}/notifications/unread-count`, '', header);
+};
+
+export const postReceiverDetails = async (data, header) => {
+    return await commonrequest('POST', `${API_BASE_URL}/chat/notify`, data, header);
+};

@@ -7,13 +7,13 @@ const screenHeight = Dimensions.get('window').height;
 
 export default StyleSheet.create({
     container: {
-         ...fontSize.containerSafeArea,
-         marginHorizontal:-20,
+        ...fontSize.containerSafeArea,
+        marginHorizontal: -20,
         flex: 1,
         backgroundColor: 'rgb(238 238 238)',
         marginBottom: 0,
         //backgroundColor:"#fff"
-        
+
     },
     scrollViewContent: {
         flex: 1,
@@ -46,9 +46,10 @@ export default StyleSheet.create({
     productLabel: {
         fontSize: 16,
         fontWeight: 500,
-        borderWidth:0,
-        verticalAlign:"middle",
-       
+        borderWidth: 0,
+        // verticalAlign:"middle",
+        width: '30%'
+
 
     },
     productName: {
@@ -64,7 +65,16 @@ export default StyleSheet.create({
         fontSize: 20,
     },
     productText: {
-
+        textAlign: "right",
+            // backgroundColor: 'red',
+        width: '75%',
+        fontSize: 14,
+        marginTop: 0,
+    },
+    descriptionText:{
+          textAlign: "right",
+        // backgroundColor: 'red',
+        // width: '75%',
         fontSize: 14,
         marginTop: 0,
     },
@@ -80,14 +90,14 @@ export default StyleSheet.create({
         color: '#fff',
     },
     iconWrap: {
-        marginTop:50,
+        marginTop: 50,
         // paddingTop:30,
         borderWidth: 0,
         borderRadius: 50,
-        paddingLeft:10,
+        paddingLeft: 10,
         width: 40,
         height: 40,
-justifyContent:"center",
+        justifyContent: "center",
     },
     footer: {
         flexDirection: "row",
@@ -128,23 +138,23 @@ justifyContent:"center",
     buttonshare: {
         color: "#fff",
     },
-    btnContainer:{
-        paddingHorizontal:20,
-        marginBottom:10,
+    btnContainer: {
+        paddingHorizontal: 20,
+        marginBottom: 10,
     },
-    MyButton :{
-        borderWidth:0,
-        borderRadius:30,
-        backgroundColor:Colors.parssedButton
+    MyButton: {
+        borderWidth: 0,
+        borderRadius: 30,
+        backgroundColor: Colors.parssedButton
     },
 
-    MyButtonText:{
-        fontWeight:"bold",
-        color:'#fff'
+    MyButtonText: {
+        fontWeight: "bold",
+        color: '#fff'
     },
     middleBodyButton: {
         borderWidth: 0,
-        width: screenWidth/2 - 30,
+        width: screenWidth / 2 - 30,
         justifyContent: "center",
         borderRadius: 20,
         flexDirection: "row",
@@ -154,8 +164,8 @@ justifyContent:"center",
         marginBottom: 0,
         gap: 10,
         borderColor: Colors.productDashboardBorderColor,
-        borderWidth:1,
-        marginHorizontal:-10
+        borderWidth: 1,
+        marginHorizontal: -10
     },
     selectDate: {
         flexDirection: "row",
@@ -174,13 +184,20 @@ justifyContent:"center",
     },
     discriptionTextWrap: {
         flexDirection: "row",
-        justifyContent:"space-between",
+        justifyContent: "space-between",
         gap: 5,
         marginVertical: 5,
     },
-    discriptionWrap:{
-        flexDirection:"row",
-       
+    productDetailsWrap: {
+        marginRight:10,
+        flexDirection: "row",
+        justifyContent: "space-between",
+        gap: 5,
+        marginVertical: 5,
+    },
+    discriptionWrap: {
+        flexDirection: "row",
+
     },
     middleBodyText: {
         fontSize: 17,
@@ -202,8 +219,8 @@ justifyContent:"center",
         padding: 20,
         position: 'absolute',
         bottom: -30,
-      },
-    
+    },
+
     bottomSheetTitle: {
         fontSize: 18,
         fontWeight: 'bold',
@@ -295,8 +312,8 @@ justifyContent:"center",
     grayContainer: {
         backgroundColor: Colors.lightGray,
     },
-    darkGray:{
-        backgroundColor:Colors.darkGray
+    darkGray: {
+        backgroundColor: Colors.darkGray
     },
     bottomWrap: {
         // borderWidth:1,
@@ -316,7 +333,7 @@ justifyContent:"center",
         position: "absolute",
         alignSelf: "center",
         // top: screenWidth - 20,
-        marginTop:-40,
+        marginTop: -40,
     },
 
     inactivePageIndicator: {
@@ -336,16 +353,16 @@ justifyContent:"center",
         height: 8,
         borderRadius: 10,
     },
-    AddressInput:{
-        width:screenWidth-40,
-        borderWidth:1,
-        borderRadius:5,
-        borderColor:Colors.productDashboardBorderColor,
-        marginVertical:-0,
-        marginRight:-10
+    AddressInput: {
+        width: screenWidth - 40,
+        borderWidth: 1,
+        borderRadius: 5,
+        borderColor: Colors.productDashboardBorderColor,
+        marginVertical: -0,
+        marginRight: -10
 
     },
-    modalSheetContainAddresst:{
+    modalSheetContainAddresst: {
         flexDirection: "row",
         justifyContent: 'space-between',
         paddingVertical: 8,

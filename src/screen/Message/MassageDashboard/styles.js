@@ -149,6 +149,15 @@ const styles = StyleSheet.create({
   darkGrayContainer: {
     backgroundColor: Colors.lightGray
   },
+    centeredWrap: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+    emptyText: {
+    fontSize: 15,
+    color: 'black',
+  },
 });
 
 export default styles;

@@ -18,10 +18,10 @@ const OrderTabs = () => {
         <Tab.Navigator
             screenOptions={{
                 tabBarScrollEnabled: true,
-                tabBarIndicatorStyle: { backgroundColor: '#007bff', height: 3, width: screenWidth / 3 },
+                tabBarIndicatorStyle: { backgroundColor: '#007bff', height: 0, },
                 tabBarActiveTintColor: '#007bff',
                 tabBarInactiveTintColor: '#888',
-                tabBarItemStyle: { width: screenWidth / 3 },
+                // tabBarItemStyle: { width: screenWidth / 3 },
                 tabBarStyle: {
                     backgroundColor: isEnabled ? '#121212' : '#fff',
                 },
@@ -33,8 +33,12 @@ const OrderTabs = () => {
                 initialParams={{ status: 'pending' }}
                 options={{
                     tabBarLabel: ({ focused, color }) => (
-                        <Text style={{ color: color, fontWeight: 'bold', fontSize: 14 }}>
-                            Pending
+                        <Text style={{
+                            color: focused ? '#007bff' : '#888', 
+                            fontWeight: 'bold',
+                            fontSize: 14,
+                            textAlign: 'center',
+                        }}>                            Pending Order
                         </Text>
                     ),
                 }}
@@ -45,8 +49,12 @@ const OrderTabs = () => {
                 initialParams={{ status: 'accepted' }}
                 options={{
                     tabBarLabel: ({ focused, color }) => (
-                        <Text style={{ color: color, fontWeight: 'bold', fontSize: 14 }}>
-                            Accepted
+                        <Text style={{
+                            color: focused ? '#007bff' : '#888', 
+                            fontWeight: 'bold',
+                            fontSize: 14,
+                            textAlign: 'center',
+                        }}>                            Accepted Order
                         </Text>
                     ),
                 }}
@@ -57,8 +65,12 @@ const OrderTabs = () => {
                 initialParams={{ status: 'rejected' }}
                 options={{
                     tabBarLabel: ({ focused, color }) => (
-                        <Text style={{ color: color, fontWeight: 'bold', fontSize: 14 }}>
-                            Rejected
+                        <Text style={{
+                            color: focused ? '#007bff' : '#888', 
+                            fontWeight: 'bold',
+                            fontSize: 14,
+                            textAlign: 'center',
+                        }}>                            Rejected Order
                         </Text>
                     ),
                 }}
@@ -69,8 +81,12 @@ const OrderTabs = () => {
                 initialParams={{ status: 'cancelled' }}
                 options={{
                     tabBarLabel: ({ focused, color }) => (
-                        <Text style={{ color: color, fontWeight: 'bold', fontSize: 14 }}>
-                            Cancelled
+                        <Text style={{
+                            color: focused ? '#007bff' : '#888', 
+                            fontWeight: 'bold',
+                            fontSize: 14,
+                            textAlign: 'center',
+                        }}>                            Cancelled Order
                         </Text>
                     ),
                 }}
@@ -81,8 +97,12 @@ const OrderTabs = () => {
                 initialParams={{ status: 'completed' }}
                 options={{
                     tabBarLabel: ({ focused, color }) => (
-                        <Text style={{ color: color, fontWeight: 'bold', fontSize: 14 }}>
-                            Completed
+                        <Text style={{
+                            color: focused ? '#007bff' : '#888', // important
+                            fontWeight: 'bold',
+                            fontSize: 14,
+                            textAlign: 'center',
+                        }}>                            Completed Order
                         </Text>
                     ),
                 }}

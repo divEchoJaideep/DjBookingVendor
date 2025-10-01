@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Image, Platform, Text } from 'react-native';
+import { Image, Platform, Text, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useTheme } from '../ThemeContext/ThemeContext';
 import DashBorad from '../screen/DashBorad/DashBorad';
@@ -7,10 +7,13 @@ import settingDashboard from '../screen/Settings/SettingDashboard/settingDashboa
 import ProductsDashboard from '../screen/Product/ProductDashboard/ProductsDashboard';
 import OrderMainScreen from '../screen/Order/orderDashboard/OrderMainScreen';
 import MassageDashboard from '../screen/Message/MassageDashboard/MassageDashboard';
+import { UnreadContext } from '../ThemeContext/UnreadContext';
 
 const Tab = createBottomTabNavigator();
 
-const BottomTab = ({ route }) => {ProductsDashboard
+const BottomTab = ({ route }) => {
+  
+  const { hasUnread } = React.useContext(UnreadContext);
   const { isEnabled } = useTheme();
   return (
     <Tab.Navigator
@@ -42,7 +45,24 @@ const BottomTab = ({ route }) => {ProductsDashboard
               ? require('../Images/messenge-active.png')
               : require('../Images/messenge-active.png');
           } 
-          return <Image source={iconSource} style={{ width: size, height: size, tintColor: color }} />;
+         return (
+            <View>
+              <Image source={iconSource} style={{ width: size, height: size, tintColor: color }} />
+              {route.name === 'MassageDashboard' && hasUnread && (
+                <View
+                  style={{
+                    position: 'absolute',
+                    top: -2,
+                    right: -2,
+                    width: 10,
+                    height: 10,
+                    borderRadius: 5,
+                    backgroundColor: 'red',
+                  }}
+                />
+              )}
+            </View>
+          );
         },
         tabBarLabel: ({ focused, color }) => (
           <Text

@@ -125,11 +125,15 @@ useFocusEffect(
   const updateOrderStatusHandler = async (productID, newStatus, reason = '') => {
     try {
       const token = await AsyncStorage.getItem('userToken');
+      console.log('token :', token);
+      
       const header = `Bearer ${token}`;
       const payload = { status: newStatus };
       if (reason) payload.reason = reason;
 
       const response = await updateOrderStatus(productID, payload, header);
+      console.log('updateOrderStatus response :', response);
+      
       if (response?.status) {
         fetchOrders(1, appliedDates);
       } else {

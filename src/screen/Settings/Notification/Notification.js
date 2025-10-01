@@ -1,10 +1,12 @@
-import React from "react";
-import { Text, View, FlatList, StyleSheet, Image } from "react-native";
+import React, { useState } from "react";
+import { Text, View, FlatList, StyleSheet, Image, TouchableOpacity, Alert } from "react-native";
 import TopHeader from "../../../../components/header/topHeader";
 import styles from "./styles";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useTheme } from "../../../ThemeContext/ThemeContext";
 import Container from "../../../../components/Container";
+import { getNotifications, markAllNotificationsAsRead, notificationDelete } from "../../../api/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
 
@@ -12,6 +14,25 @@ const Notification = () => {
     const navigation = useNavigation();
     const { isEnabled } = useTheme();
 
+    const [notificationData, setNotificationData] = useState({
+        total: 0,
+        notifications: [],
+        current_page: 1,
+        last_page: 1,
+    });
+    console.log('notificationData :', notificationData);
+
+    const [loading, setLoading] = useState(false);
+
+    useFocusEffect(
+        React.useCallback(() => {
+            getAllNotifications();
+
+            // return () => {
+            //     allReadNotifications();
+            // };
+        }, [])
+    );
 
     const containerStyle = isEnabled ? styles.darkContainer : styles.lightContainer;
     const textStyle = isEnabled ? styles.darkText : styles.lightText;
@@ -19,31 +40,91 @@ const Notification = () => {
     const darkGrayContainer = isEnabled ? styles.darkGray : styles.lightContainer;
 
 
+    const getAllNotifications = async (page = 1) => {
+        const token = await AsyncStorage.getItem('userToken');
+        const header = `Bearer ${token}`;
 
-    const dummyNotifications = [
-        { id: '1', title: 'Booking Confirmed', message: 'Your booking has been confirmed for 5th June.' },
-        { id: '2', title: 'New Offer', message: 'Get 20% off on your next booking!' },
-        { id: '3', title: 'Reminder', message: 'Don’t forget your event tomorrow at 4 PM.' },
-    ];
+        try {
+            setLoading(true);
+            const response = await getNotifications(header, page);
+            console.log('response :', response);
+
+            if (response?.status) {
+                const { notifications, current_page, last_page, total } = response.data;
+
+                setNotificationData(prev => ({
+                    total,
+                    notifications: page === 1 ? notifications : [...prev.notifications, ...notifications],
+                    current_page,
+                    last_page,
+                }));
+            }
+        } catch (error) {
+            // console.error("Error fetching notifications:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+    const allReadNotifications = async () => {
+        const token = await AsyncStorage.getItem('userToken');
+        const header = `Bearer ${token}`;
+        try {
+            const response = await markAllNotificationsAsRead(header);
+            if (response?.status) {
+                getAllNotifications();
+            }
+        } catch (error) {
+            // console.error("Error marking all notifications as read:", error);
+        }
+    }
+
+
+    const handleDeleteNotification = async (id) => {
+
+        const token = await AsyncStorage.getItem('userToken');
+        const header = `Bearer ${token}`;
+        try {
+            const response = await notificationDelete(id, header);
+            if (response?.status) {
+                Alert.alert('Alert', response?.message || 'Notification deleted successfully');
+                getAllNotifications();
+            }
+        } catch (error) {
+            // console.error("Error deleting notification:", error);
+        }
+        // Implement delete functionality here
+        // console.log('Delete notification with id:', id);
+    }
 
     const renderItem = ({ item }) => (
         <View style={[styles.notificationCard, darkGrayContainer]}>
+            <TouchableOpacity onPress={() => handleDeleteNotification(item.id)} style={styles.closeButton}>
+                <Text>X</Text>
+            </TouchableOpacity>
             <Image
                 source={require('../../../Images/notification.png')}
                 style={styles.settingImage}
                 tintColor={isEnabled ? '#fff' : '#121212'}
             />
             <View>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '87%' }}>
+                    <View>
+                        <Text style={[styles.title, { color: isEnabled ? '#fff' : '#000' }]}>{item.data.title}</Text>
 
-                <Text style={[styles.title, { color: isEnabled ? '#fff' : '#000' }]}>{item.title}</Text>
-                <Text numberOfLines={0}multiline style={[styles.message, { color: isEnabled ? '#ccc' : '#555' }]}>{item.message}</Text>
+                    </View>
+
+
+                </View>
+                <Text style={[styles.message, { color: isEnabled ? '#ccc' : '#555' }]} numberOfLines={2} multiline >{item.data.body}</Text>
             </View>
         </View>
     );
 
     return (
-        <Container lightContent={isEnabled} safeAreaView paddingBottomContainer={true} safeAreaViewHeader conatinerStyle={containerStyle}>
-            <View style={[styles.container,]}>
+        <Container lightContent={isEnabled} paddingBottomContainer={true} safeAreaView safeAreaViewHeader conatinerStyle={containerStyle}>
+            <View style={[styles.container, containerStyle]}>
                 <TopHeader
                     topHeaderStyle={styles.topHeader}
                     leftImage={true}
@@ -55,11 +136,22 @@ const Notification = () => {
                     tintColorLeft={isEnabled ? '#fff' : '#121212'}
                 />
                 <FlatList
-                    data={dummyNotifications}
-                    keyExtractor={item => item.id}
+                    data={notificationData.notifications}
+                    keyExtractor={(item, index) => item.id?.toString() || index.toString()}
                     renderItem={renderItem}
-                    contentContainerStyle={styles.listContainer}
+                    onEndReached={() => {
+                        if (notificationData.current_page < notificationData.last_page) {
+                            getAllNotifications(notificationData.current_page + 1);
+                        }
+                    }}
+                    onEndReachedThreshold={0.5}
+                    ListEmptyComponent={
+                        <Text style={{ textAlign: 'center', marginTop: 20, color: '#999' }}>
+                            Notifications not found
+                        </Text>
+                    }
                 />
+
             </View>
         </Container>
     );

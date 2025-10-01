@@ -1,55 +1,55 @@
 import axios from "axios";
 
 export const commonrequest = async (methods, url, body, header) => {
- // console.log('body :',body);
-  
   let config = {
     method: methods,
     url,
-    // headers: {},
     headers: header
-      ? (header = { Authorization: header, Accept: "application/json" })
-
-      : {
-        "Content-Type": "application/json",
-      },
+      ? { Authorization: header, Accept: "application/json" }
+      : { "Content-Type": "application/json" },
     data: body,
   };
 
-  // axios instance
-  return axios(config)
-    .then((response) => {
-      return response.data;
-    })
-    .catch((error) => {
-      // console.log("error: ", error?.response)
-      return { success: false, message: error?.response?.data?.message};
-
-    });
+  try {
+    const response = await axios(config);
+    return response.data;
+  } catch (error) {
+    // Console me detailed error log
+    if (error.response) {
+      // Server responded with a status other than 2xx
+      console.log("Error Response:", error.response.data, error.response.status);
+    } else if (error.request) {
+      // Request was made but no response received
+      console.log("Error Request:", error.request);
+    } else {
+      // Something else caused the error
+      console.log("Error Message:", error.message);
+    }
+    return { error: true, details: error };
+  }
 };
 
-export const commonFileUpload = async (methods, url, body, header, onUploadProgress) => {
+export const commonFileUpload = async (methods, url, body, header) => {
   let config = {
     method: methods,
     url,
     headers: header
-      ? {
-          'Content-Type': 'multipart/form-data',
-          Authorization: header,
-        }
-      : {
-          'Content-Type': 'multipart/form-data',
-        },
+      ? { "Content-Type": "multipart/form-data", Authorization: header }
+      : { "Content-Type": "multipart/form-data" },
     data: body,
-
-    onUploadProgress, 
   };
 
-  return axios(config)
-    .then((response) => {
-      return response.data;
-    })
-    .catch((error) => {
-      return error;
-    });
+  try {
+    const response = await axios(config);
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      console.log("File Upload Error Response:", error.response.data, error.response.status);
+    } else if (error.request) {
+      console.log("File Upload Error Request:", error.request);
+    } else {
+      console.log("File Upload Error Message:", error.message);
+    }
+    return { error: true, details: error };
+  }
 };

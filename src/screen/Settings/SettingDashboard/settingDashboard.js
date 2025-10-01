@@ -15,20 +15,24 @@ import TopHeader from '../../../../components/header/topHeader';
 import { AuthContext } from '../../../context/AuthContext';
 import Container from '../../../../components/Container';
 import Content from '../../../../components/Content';
+import { notificationCount } from '../../../api/api';
 
 const SettingDashboard = () => {
     const navigation = useNavigation();
-const { logout } = useContext(AuthContext);
+    const { logout } = useContext(AuthContext);
     const { isEnabled, toggleSwitch } = useTheme();
     const [user, setUser] = useState(null);
+    const [notification, setNotification] = useState(0);
     const MAX_IMAGE_SIZE = 4 * 1024 * 1024;
     const containerStyle = isEnabled ? styles.darkContainer : styles.lightContainer;
     const textStyle = isEnabled ? styles.darkText : styles.lightText;
     const lightGray = isEnabled ? styles.lightGrayContainer : styles.buttonbackgroundContrainer;
+console.log('notification :',notification);
 
     useFocusEffect(
         useCallback(() => {
             getStoredUser();
+            NotificationCount()
         }, [])
     );
 
@@ -43,7 +47,20 @@ const { logout } = useContext(AuthContext);
         }
     };
 
-
+    const NotificationCount = async () => {
+        try {
+            const token = await AsyncStorage.getItem('userToken');
+            const header = `Bearer ${token}`;
+            const response = await notificationCount(header);
+            console.log('Notification Count Response:', response);
+            if (response?.status) {
+                setNotification(response?.data?.unread_count);
+            }
+        } catch (error) {
+            console.error('Error fetching notification count:', error);
+            return 0;
+        }
+    };
 
     const logoutHandler = () => {
         Alert.alert(
@@ -82,7 +99,7 @@ const { logout } = useContext(AuthContext);
                 <Content
                     hasHeader
                     contentContainerStyle={[containerStyle, {
-                        flex:1,
+                        flex: 1,
                     }]}
                     extraScrollHeight={1}>
                     <TouchableOpacity style={styles.profileWrap} onPress={() => navigation.navigate('AccountSetting')}>
@@ -169,11 +186,14 @@ const { logout } = useContext(AuthContext);
                             </View>
                             <Text style={[styles.settingText, textStyle]}>Notification</Text>
                         </View>
-                        <Image
-                            source={require('../../../Images/next.png')}
-                            style={styles.nextImag}
-                            tintColor={isEnabled ? '#fff' : '#121212'}
-                        />
+                        <View style={{ flexDirection: "row", alignItems: "center" }}>
+                            {notification > 0 && <Text style={[styles.notificationCount,]}>{notification}</Text>}
+                            <Image
+                                source={require('../../../Images/next.png')}
+                                style={styles.nextImag}
+                                tintColor={isEnabled ? '#fff' : '#121212'}
+                            />
+                        </View>
                     </TouchableOpacity>
 
                     <TouchableOpacity style={styles.settingWrap} onPress={() => navigation.navigate('Job')}>

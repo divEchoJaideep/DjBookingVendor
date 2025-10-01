@@ -42,8 +42,7 @@ export default function Container(props) {
       );
     }, [lightContent, statusBarColor])
   );
-{console.log('lightContent :',lightContent);
-}
+
   return (
     <>
       {safeAreaView !== false && <SafeAreaView style={style} />}

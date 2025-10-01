@@ -19,6 +19,16 @@ const styles = StyleSheet.create({
         borderRadius: 5,
 
     },
+     notificationCount: {
+        backgroundColor: 'red',
+        minWidth:10,
+        paddingHorizontal: 5,
+        textAlign:'center',
+        borderRadius: 50,
+        color: 'white',
+        fontSize: 12,
+        fontWeight: 'bold',
+    },
     returnButton: {
         borderWidth: 0,
 

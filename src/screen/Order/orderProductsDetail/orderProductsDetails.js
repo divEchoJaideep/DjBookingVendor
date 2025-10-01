@@ -68,12 +68,21 @@ const OrderProductsDetails = ({ route }) => {
 
     useEffect(() => {
         if (eventDate) {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const timeDiff = eventDate.getTime() - today.getTime();
-            setIsCompleteAllowed(timeDiff <= 0);
+            setIsCompleteAllowed(isSameOrBeforeToday(eventDate));
         }
     }, [eventDate]);
+
+    const isSameOrBeforeToday = (date) => {
+        if (!date) return false;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const event = new Date(date);
+        event.setHours(0, 0, 0, 0);
+
+        return event.getTime() <= today.getTime();
+    };
+
 
 
 
@@ -100,6 +109,8 @@ const OrderProductsDetails = ({ route }) => {
                 reason: reason,
             };
             const response = await updateOrderStatus(productID, payload, header);
+            console.log('updateOrderStatus response :', response);
+
             if (response?.status) {
                 const updatedOrders = order.map((orderItem) =>
                     orderItem.productID === productID ? { ...orderItem, status: newStatus } : orderItem,
@@ -181,7 +192,7 @@ const OrderProductsDetails = ({ route }) => {
     };
 
     const scrollmarginBottom = product?.status?.toLowerCase() === 'pending' || product?.status?.toLowerCase() === 'accepted' ? 30 : 20;
-    const hiddenKeys = ['commission', 'banner', 'user_Address', 'title', 'vendor_Address', 'vendor_Name', 'price', 'contact'];
+    const hiddenKeys = ['commission', 'vendor_profile', 'banner', 'user_Address', 'title', 'vendor_Address', 'vendor_Name', 'price', 'contact'];
 
     return (
         <Container lightContent={isEnabled} paddingBottomContainer={true} conatinerStyle={containerStyle}>

@@ -21,7 +21,7 @@ const AccountSettingTab = () => {
         },
         tabBarIndicatorStyle: {
           backgroundColor: '#007bff',
-          height: 3,
+          height: 0,
         },
         tabBarActiveTintColor: '#007bff',
         tabBarInactiveTintColor: '#888',

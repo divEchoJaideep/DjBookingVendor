@@ -1,6 +1,6 @@
 import 'react-native-gesture-handler';
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { createNavigationContainerRef, NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import ActiveIndicator from './components/ActriveIndicator/ActiveIndicator';
 import { ThemeProvider } from './src/ThemeContext/ThemeContext';
@@ -14,14 +14,17 @@ import { profile } from './src/api/api';
 import { Alert } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { requestUserPermission } from './src/lib/notificationHelper';
+import { displayNotification } from './src/utlis/diplayNotification';
+import { UnreadProvider } from './src/ThemeContext/UnreadContext';
 
 const Stack = createNativeStackNavigator();
+export const navigationRef = createNavigationContainerRef();
 
 const MainNavigator = () => {
   const { logout } = useContext(AuthContext);
-  const { isAuthenticated, setIsAuthenticated } = useContext(AuthContext);
+  const { isAuthenticated } = useContext(AuthContext);
   const [currentRoute, setCurrentRoute] = useState();
-  const updateNavigationRef = useRef(null);
+
   useEffect(() => {
     const checkUserStatus = async () => {
       try {
@@ -30,44 +33,29 @@ const MainNavigator = () => {
 
         const header = `Bearer ${token}`;
         const response = await profile(header);
-        if (response?.data?.status === 'rejected') {
-          Alert.alert('Account Rejected', 'Your account has been rejected.');
+        if (response?.success !== true) {
+          Alert.alert('Logged Out', 'Your account is logged into another device.');
           await logout();
         }
-      } catch (error) {
-        //   console.error('Status check error:', error);
-      }
+      } catch (error) { }
     };
-
-
     checkUserStatus();
-  }, [currentRoute])
+  }, [currentRoute]);
 
-  if (isAuthenticated === null) {
-    return <ActiveIndicator fullScreen />;
-  }
+  if (isAuthenticated === null) return <ActiveIndicator fullScreen />;
 
   useEffect(() => {
-    const unsubscribe = messaging().onMessage(async remoteMessage => {
-      Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage));
-    });
-
-    return unsubscribe;
-  }, []);
-
-
-  useEffect(() => {
-    requestUserPermission();
-  }, [])
+    if (isAuthenticated) requestUserPermission();
+  }, [isAuthenticated]);
 
   return (
     <SafeAreaProvider>
       <NavigationContainer
-        ref={updateNavigationRef}
-        onReady={() => setCurrentRoute(updateNavigationRef.current.getCurrentRoute().name)}
-        onStateChange={() => setCurrentRoute(updateNavigationRef.current.getCurrentRoute().name)}
+        ref={navigationRef}
+        onReady={() => setCurrentRoute(navigationRef.getCurrentRoute()?.name)}
+        onStateChange={() => setCurrentRoute(navigationRef.getCurrentRoute()?.name)}
       >
-        <Stack.Navigator screenOptions={{ headerShown: false, }}>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
           {isAuthenticated ? (
             <Stack.Screen name="AppStack" component={AppStack} />
           ) : (
@@ -80,11 +68,93 @@ const MainNavigator = () => {
 };
 
 const App = () => {
+  const orderNav = [
+    { key: "new_order", screen: { name: "OrderMainScreen", child: "PendingOrder" } },
+    { key: "order_accepted", screen: { name: "OrderMainScreen", child: "AcceptOrder" } },
+    { key: "order_rejected", screen: { name: "OrderMainScreen", child: "RejectOrder" } },
+    { key: "order_completed", screen: { name: "OrderMainScreen", child: "CompleteOrder" } },
+    { key: "order_cancelled", screen: { name: "OrderMainScreen", child: "CancelOrder" } },
+    { key: "chat_notification", screen: { name: "AppStack", child: 'Chats' } },
+  ];
+
+  const pendingNotification = useRef(null);
+
+  const navigateToScreen = (screen, child = null, params = {}) => {
+    if (!navigationRef.isReady()) {
+      pendingNotification.current = () => navigateToScreen(screen, child, params);
+      return;
+    }
+
+    if (child) {
+      navigationRef.navigate(screen);
+      setTimeout(() => {
+        if (navigationRef.isReady()) {
+          navigationRef.navigate(screen, { screen: child, params });
+        }
+      }, 300);
+    } else {
+      navigationRef.navigate(screen, params);
+    }
+  };
+
+  useEffect(() => {
+    const handleNotification = (remoteMessage) => {
+      if (!remoteMessage?.data?.type) return;
+
+      const type = remoteMessage.data.type;
+      const matched = orderNav.find(item => item.key === type);
+      if (!matched) return;
+
+      let params = {};
+      if (type === 'chat_notification' && remoteMessage.data.chatId) {
+        params = { conversationId: remoteMessage.data.chatId };
+      }
+
+      navigateToScreen(matched.screen.name, matched.screen.child, params);
+    };
+
+    const unsubscribeForeground = messaging().onMessage(async (remoteMessage) => {
+      console.log("Foreground remoteMessage:", remoteMessage);
+      await displayNotification(
+        remoteMessage?.notification?.title,
+        remoteMessage?.notification?.body,
+        () => handleNotification(remoteMessage)
+      );
+    });
+
+    const unsubscribeBackground = messaging().onNotificationOpenedApp(handleNotification);
+
+    messaging().getInitialNotification().then(remoteMessage => {
+      if (remoteMessage) {
+        if (!navigationRef.isReady()) {
+          pendingNotification.current = () => handleNotification(remoteMessage);
+        } else {
+          handleNotification(remoteMessage);
+        }
+      }
+    });
+
+    const interval = setInterval(() => {
+      if (navigationRef.isReady() && pendingNotification.current) {
+        pendingNotification.current();
+        pendingNotification.current = null;
+      }
+    }, 500);
+
+    return () => {
+      unsubscribeForeground();
+      unsubscribeBackground();
+      clearInterval(interval);
+    };
+  }, []);
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <AuthProvider>
         <ThemeProvider>
-          <MainNavigator />
+          <UnreadProvider>
+            <MainNavigator />
+          </UnreadProvider>
         </ThemeProvider>
       </AuthProvider>
     </GestureHandlerRootView>

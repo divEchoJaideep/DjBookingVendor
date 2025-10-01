@@ -52,7 +52,7 @@ const DashBorad = () => {
         await AsyncStorage.setItem('Settings', JSON.stringify(response));
       }
     } catch (error) {
-      Alert.alert('Error fetching settings:');
+      // Alert.alert('Error fetching settings:');
     }
   };
 
@@ -71,7 +71,7 @@ const DashBorad = () => {
         setNextDayOrder(formattedData);
       }
     } catch (error) {
-      Alert.alert('Error fetching settings:');
+      // Alert.alert('Error fetching settings:');
     }
   };
 
@@ -80,6 +80,7 @@ const DashBorad = () => {
     try {
       const AllSettings = await AsyncStorage.getItem('Settings')
       const parsedSettings = JSON.parse(AllSettings);
+      console.log('Parsed Settings:', parsedSettings);
       const today_order = parsedSettings.data.today_order;
       const today_order_amount = parsedSettings.data.today_order_amount;
       const all_order = parsedSettings.data.all_order;
@@ -138,10 +139,10 @@ const DashBorad = () => {
           label: getDayLabel(dateStr),
           frontColor: '#814eff',
         },
-        {
-          value: pendingOrder[index] || 0,
-          frontColor: 'red',
-        },
+        // {
+        //   value: pendingOrder[index] || 0,
+        //   frontColor: 'red',
+        // },
       ]);
 
       setChartData(mergedBarData);
@@ -150,7 +151,7 @@ const DashBorad = () => {
       setAllOrderAmount(all_order_amount)
 
     } catch (error) {
-      Alert.alert('Alert', 'Settings are not found');
+      // Alert.alert('Alert', 'Settings are not found');
     }
   };
 
@@ -255,23 +256,25 @@ const DashBorad = () => {
                     <View style={styles.completedOrder} />
                     <Text style={[styles.weeklyButtonText, textStyle]}>Completed Orders</Text>
                   </View>
-                  <View style={{ flexDirection: 'row', }}>
+                  {/* <View style={{ flexDirection: 'row', }}>
                     <View style={styles.pendingOrder} />
                     <Text style={[styles.weeklyButtonText, textStyle]}>Pending Orders</Text>
-                  </View>
+                  </View> */}
                 </View>
               </View>
 
-              <Text style={styles.bottomContainerText}>Total Order Received</Text>
+              {/* <Text style={styles.bottomContainerText}>Total Order Completed</Text> */}
               {/* <Text style={[styles.bottomContainerAmount, textStyle]}>Total Order : {totalOrder}</Text> */}
               <View style={styles.barChartWrap}>
                 <BarChart
                   data={chartData}
                   barWidth={barwidth}
-                  spacing={13}
+                  spacing={33}
+                  rulesLength={windowWidth - 88}
                   roundedTop
                   roundedBottom
-                  labelWidth={24}
+                  scrollEnabled={true}
+                  labelWidth={barwidth}
                   xAxisThickness={0}
                   yAxisThickness={0}
                   yAxisTextStyle={{ color: 'gray' }}
@@ -280,7 +283,6 @@ const DashBorad = () => {
                   initialSpacing={10}
                   height={100}
                   isAnimated={true}
-                  rulesLength={windowWidth - 88}
                   animationDuration={1000}
                   xAxisLabelTextStyle={xAxisLabelTextColor}
                 />
@@ -290,16 +292,16 @@ const DashBorad = () => {
             <View style={[styles.graph, containerStyle]}>
               <View style={{ flexDirection: "row", justifyContent: "space-between", }}>
                 <Text style={[styles.bottomContainerTitle, textStyle]}>Next 7 Days Orders</Text>
-                {/* <View style={styles.weeklyButton} >
-                <View style={{ flexDirection: 'row', }}>
+                <View style={styles.weeklyButton} >
+                {/* <View style={{ flexDirection: 'row', }}>
                   <View style={styles.completedOrder} />
                   <Text style={[styles.weeklyButtonText, textStyle]}>Completed Orders</Text>
-                </View>
+                </View> */}
                 <View style={{ flexDirection: 'row', }}>
                   <View style={styles.pendingOrder} />
                   <Text style={[styles.weeklyButtonText, textStyle]}>Pending Orders</Text>
                 </View>
-              </View> */}
+              </View>
               </View>
 
               {/* <Text style={styles.bottomContainerText}>Total Order Recived</Text>

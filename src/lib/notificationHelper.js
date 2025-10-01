@@ -1,27 +1,51 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import messaging from '@react-native-firebase/messaging';
+import { PermissionsAndroid, Platform } from 'react-native';
+import { saveFCMToken } from '../api/api';
+
 
 export async function requestUserPermission() {
-    const authStatus = await messaging().requestPermission();
-    const enabled =
-        authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-        authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+    if (Platform.OS === 'android') {
+        const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+            {
+                title: "Notification Permission",
+                message: "This app needs access to send you notifications.",
+                buttonNeutral: "Ask Me Later",
+                buttonNegative: "Cancel",
+                buttonPositive: "OK"
+            }
+        );
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+            console.log("Notification permission granted");
+            getFcmToken();
+        } else {
+            console.log("Notification permission denied");
+        }
+    } else { // iOS
+        const authStatus = await messaging().requestPermission();
+        const enabled =
+            authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+            authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 
-    if (enabled) {
-        console.log('Authorization status:', authStatus);
-        getFcmToken();
+        if (enabled) {
+            console.log('Authorization status:', authStatus);
+            getFcmToken();
+        }
     }
 }
 
-
 const getFcmToken = async () => {
-    let token = await messaging().getToken();
+    await messaging().registerDeviceForRemoteMessages();
+    // await messaging().deleteToken();
+    const token = await messaging().getToken();
     const header = await AsyncStorage.getItem('userToken');;
     if (!header) {
         console.log('No FCM token found');
         return;
     }
-    saveFCMToken({ "device_token": token }, header).then((response) => {
+    saveFCMToken({ "device_token": token }, `Bearer ${header}`).then((response) => {
+        console.log("device_token response: ", response)
         if (!response?.success) throw new Error(response.message);
         console.log("FCM Token saved successfully:", token);
     }).catch((error) => {

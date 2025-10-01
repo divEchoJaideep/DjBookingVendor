@@ -212,11 +212,11 @@ const ProductDetails = () => {
                             }
                             keyExtractor={(item) => item.id.toString()}
                             renderItem={({ item }) => (
-                                <View style={styles.discriptionTextWrap}>
+                                <View style={[styles.discriptionTextWrap,]}>
                                     <Text style={[styles.productLabel, textStyle]}>
                                         {item.meta_key.charAt(0).toUpperCase() + item.meta_key.slice(1)}:
                                     </Text>
-                                    <Text style={[styles.productText, textStyle]}>
+                                    <Text style={[styles.descriptionText, textStyle]}>
                                         {(item.meta_key === 'Per Hour Price' || item.meta_key === 'Per KM Price')
                                             ? `₹ ${item.meta_value}`
                                             : item.meta_value}
@@ -234,19 +234,19 @@ const ProductDetails = () => {
                     <View style={[styles.middleBody, { backgroundColor: isEnabled ? '#121212' : '#fff' }]}>
                         <Text style={[styles.middleBodyText, textStyle]}>Product Details</Text>
 
-                        <View style={styles.discriptionTextWrap}>
+                        <View style={styles.productDetailsWrap}>
                             <Text style={[styles.productLabel, textStyle]}>Category:</Text>
                             <Text style={[styles.productText, textStyle]}>{productDetails.category?.name}</Text>
                         </View>
-                        <View style={styles.discriptionTextWrap}>
+                        <View style={styles.productDetailsWrap}>
                             <Text style={[styles.productLabel, textStyle]}>Subcategory:</Text>
                             <Text style={[styles.productText, textStyle]}>{productDetails.subcategory?.name}</Text>
                         </View>
-                        <View style={styles.discriptionTextWrap}>
+                        <View style={styles.productDetailsWrap}>
                             <Text style={[styles.productLabel, textStyle]}>Status:</Text>
                             <Text style={[styles.productText, textStyle]}>{productDetails.status}</Text>
                         </View>
-                        <View style={styles.discriptionTextWrap}>
+                        <View style={styles.productDetailsWrap}>
                             <Text style={[styles.productLabel, textStyle]}>Location:</Text>
                             <Text style={[styles.productText, textStyle]}>
                                 {productDetails.locality?.locality || 'N/A'} {productDetails.city?.city || 'N/A'} {productDetails.state?.name || 'N/A'}

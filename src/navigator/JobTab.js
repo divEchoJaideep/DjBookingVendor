@@ -31,7 +31,7 @@ const JobTab = ({ activeTabIndex, onTabChange, searchQuery }) => {
       }}
       screenOptions={{
         tabBarScrollEnabled: true,
-        tabBarIndicatorStyle: { backgroundColor: '#007bff', height: 3, width: screenWidth / 3 },
+        tabBarIndicatorStyle: { backgroundColor: '#007bff', height: 0, width: screenWidth / 3 },
         tabBarActiveTintColor: '#007bff',
         tabBarInactiveTintColor: '#888',
         tabBarItemStyle: { width: screenWidth / 3 },
