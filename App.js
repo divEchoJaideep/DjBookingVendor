@@ -75,6 +75,8 @@ const App = () => {
     { key: "order_completed", screen: { name: "OrderMainScreen", child: "CompleteOrder" } },
     { key: "order_cancelled", screen: { name: "OrderMainScreen", child: "CancelOrder" } },
     { key: "chat_notification", screen: { name: "AppStack", child: 'Chats' } },
+    { key: "new_applied", screen: { name: "Job", child: 'AppliedJob' } },
+
   ];
 
   const pendingNotification = useRef(null);
@@ -125,6 +127,8 @@ const App = () => {
     const unsubscribeBackground = messaging().onNotificationOpenedApp(handleNotification);
 
     messaging().getInitialNotification().then(remoteMessage => {
+      console.log('remoteMessage :',remoteMessage);
+      
       if (remoteMessage) {
         if (!navigationRef.isReady()) {
           pendingNotification.current = () => handleNotification(remoteMessage);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import styles from '../styles';
 import { useTheme } from '../../../../ThemeContext/ThemeContext';
 import { getApplicant } from '../../../../api/api';
@@ -26,24 +26,31 @@ const AppliedJob = ({ searchQuery = '' }) => {
     last_page: 1,
     total: 0,
   });
-
+  console.log('applicantData :', applicantData)
   const navigation = useNavigation();
 
   const containerStyle = isEnabled ? styles.darkContainer : styles.lightContainer;
   const grayContainer = isEnabled ? styles.darkgray : styles.lightContainer;
   const textStyle = isEnabled ? styles.darkText : styles.lightText;
 
-useEffect(() => {
-    fetchApplicant(1, true);
-  }, [])
+  // useEffect(() => {
+  //     fetchApplicant(1, true);
+  //   }, [])
+  useFocusEffect(
+    useCallback(() => {
+      fetchApplicant(1, true);
+      setApplicantData({ items: [], last_page: 1, total: 0 });
+    }, [])
+  )
 
   useEffect(() => {
     const debounce = setTimeout(() => {
-      fetchApplicant(1, true);
+      fetchApplicant(1, searchQuery, true);
       setPage(1);
-    },);
+    }, 300);
     return () => clearTimeout(debounce);
   }, [searchQuery]);
+
 
   const fetchApplicant = async (pageNumber = 1, search = '', isReset = false) => {
     if (loading || refreshing || (applicantData.last_page && pageNumber > applicantData.last_page)) return;
@@ -53,15 +60,16 @@ useEffect(() => {
       const token = await AsyncStorage.getItem('userToken');
       const header = `Bearer ${token}`;
       const response = await getApplicant(pageNumber, search, header);
+
       if (response?.success) {
-        const { applications, total, last_page, current_page } = response.data;
+        const { applications, total, last_page } = response.data;
 
         setApplicantData(prev => ({
-          ...prev,
           total,
           last_page,
           items: isReset ? applications : [...prev.items, ...applications],
         }));
+
         setPage(pageNumber + 1);
       } else {
         Alert.alert('Error', 'Failed to fetch applicants');
@@ -110,14 +118,14 @@ useEffect(() => {
             onPress={() => navigation.navigate('JobDetails', { job: item.job })}
           >
             <View style={styles.cardContent}>
-              <View style={{flexDirection:'row',justifyContent:"space-between"}}>
+              <View style={{ flexDirection: 'row', justifyContent: "space-between" }}>
 
-              <Text style={[styles.jobTitle, textStyle]}>{item.job?.title ?? 'No Title'}</Text>
-              <Text style={styles.jobDate}>
-                Applied on: {new Date(item.created_at).toLocaleDateString()}
-              </Text>
+                <Text style={[styles.jobTitle, textStyle]}>{item.job?.title ?? 'No Title'}</Text>
+                <Text style={styles.jobDate}>
+                  Applied on: {new Date(item.created_at).toLocaleDateString()}
+                </Text>
               </View>
-              <Text style={[styles.jobDescription,textStyle]}>Applicant Name: {item.name}</Text>
+              <Text style={[styles.jobDescription, textStyle]}>Applicant Name: {item.name}</Text>
               <Text style={styles.jobQualification}>Qualification: {item.qualification}</Text>
               <Text style={styles.jobExperience}>Experience: {item.experience}</Text>
               <Text style={styles.jobSalary}>Salary: {item?.job?.salary}</Text>
