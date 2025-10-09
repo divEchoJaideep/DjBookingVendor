@@ -48,7 +48,7 @@ export default StyleSheet.create({
         fontWeight: 500,
         borderWidth: 0,
         // verticalAlign:"middle",
-        width: '30%'
+        width: '35%'
 
 
     },
@@ -67,7 +67,7 @@ export default StyleSheet.create({
     productText: {
         textAlign: "right",
             // backgroundColor: 'red',
-        width: '75%',
+        width: '70%',
         fontSize: 14,
         marginTop: 0,
     },

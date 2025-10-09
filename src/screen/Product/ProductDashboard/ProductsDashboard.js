@@ -41,6 +41,8 @@ const ProductsDashboard = ({ route }) => {
   const [boostExpiry, setBoostExpiry] = useState(null);
   const [boostAmount, setBoostAmount] = useState('');
   const [maxBoosstPrice, setMaxBoostPrice] = useState(0);
+  const [boostLoading, setBoostLoading] = useState(false);
+
 
   const navigation = useNavigation();
   const grayContainer = isEnabled ? styles.darkgray : styles.lightContainer;
@@ -139,23 +141,23 @@ const ProductsDashboard = ({ route }) => {
     );
   };
 
-useEffect(() => {
-  if (!selectedProduct?.locality_id) return;
-  
-  const fetchBoostAmount = async () => {
-    try {
-      const token = await AsyncStorage.getItem('userToken');
-      const header = `Bearer ${token}`;
-      const result = await boostedAmount(selectedProduct.locality_id, selectedProduct.category_id, header);
-      setMaxBoostPrice(result?.data?.maximum_boosted_amount  || 0);
-    } catch (error) {
-    //  console.error('Error fetching boosted amount:', error);
+  useEffect(() => {
+    if (!selectedProduct?.locality_id) return;
 
-    }
-  };
+    const fetchBoostAmount = async () => {
+      try {
+        const token = await AsyncStorage.getItem('userToken');
+        const header = `Bearer ${token}`;
+        const result = await boostedAmount(selectedProduct.locality_id, selectedProduct.category_id, header);
+        setMaxBoostPrice(result?.data?.maximum_boosted_amount || 0);
+      } catch (error) {
+        //  console.error('Error fetching boosted amount:', error);
 
-  fetchBoostAmount();
-}, [selectedProduct]);
+      }
+    };
+
+    fetchBoostAmount();
+  }, [selectedProduct]);
 
 
   const handleBoostClick = (selectedProduct) => {
@@ -189,6 +191,8 @@ useEffect(() => {
       if (!boostAmount || isNaN(boostAmount) || Number(boostAmount) <= 0)
         throw new Error("Boost amount must be a valid number greater than 0.");
 
+      setBoostLoading(true);
+
       const token = await AsyncStorage.getItem('userToken');
       const header = `Bearer ${token}`;
       const data = {
@@ -201,15 +205,16 @@ useEffect(() => {
       if (result?.success) {
         Alert.alert("Success", result.message);
         setBoostAmount('');
-        setSelectedProduct(null)
+        setSelectedProduct(null);
         resetAndFetchProducts();
-        setMaxBoostPrice(0)
+        setMaxBoostPrice(0);
       } else {
         throw new Error(result.message || "Something went wrong with the boost operation.");
       }
     } catch (error) {
-      Alert.alert("Alert", error.message || "Something went wrong while boosting the product.");
+      // Alert.alert("Alert", error.message || "Something went wrong while boosting the product.");
     } finally {
+      setBoostLoading(false);
       setBoostPopupVisible(false);
     }
   };
@@ -238,7 +243,7 @@ useEffect(() => {
 
           <View style={{ flexDirection: "row", gap: 10 }}>
             {item.is_boosted === 'no' && (
-              <TouchableOpacity style={styles.opreationImageWrap} onPress={() => { handleBoostClick(item)}}>
+              <TouchableOpacity style={styles.opreationImageWrap} onPress={() => { handleBoostClick(item) }}>
                 <Image source={require('../../../Images/Boost.png')} style={styles.opreationImage} />
               </TouchableOpacity>
             )}
@@ -345,7 +350,7 @@ useEffect(() => {
                 Boost Expiry Date: <Text style={{ fontWeight: 'bold' }}>{boostExpiry
                   ? new Date(boostExpiry).toLocaleDateString('en-GB')
                   : 'Calculating...'}
-                  </Text>
+                </Text>
               </Text>
               <Text style={styles.modalText}>
                 Top Boost Price: <Text style={{ fontWeight: 'bold' }}>₹{maxBoosstPrice || 0}</Text>
@@ -366,20 +371,37 @@ useEffect(() => {
               <View style={styles.modalButtonRow}>
                 <TouchableOpacity
                   onPress={handleBoost}
-                  disabled={!boostAmount.trim()}
+                  disabled={!boostAmount.trim() || boostLoading}
                   style={[
                     styles.modalButton,
                     styles.modalButtonBoost,
-                    { opacity: boostAmount.trim() ? 1 : 0.5 },
+                    { opacity: boostAmount.trim() && !boostLoading ? 1 : 0.5 },
                   ]}
                 >
-                  <Text style={styles.modalButtonText}>Boost</Text>
+                  {boostLoading ? (
+                    <ActivityIndicator color="#fff" size="small" />
+                  ) : (
+                    <Text style={styles.modalButtonText}>Boost</Text>
+                  )}
                 </TouchableOpacity>
 
-                <TouchableOpacity onPress={() => {setBoostPopupVisible(false), setSelectedProduct(null),setMaxBoostPrice(0)}} style={[styles.modalButton, styles.modalButtonCancel]}>
+                <TouchableOpacity
+                  onPress={() => {
+                    setBoostPopupVisible(false);
+                    setSelectedProduct(null);
+                    setMaxBoostPrice(0);
+                  }}
+                  disabled={boostLoading}
+                  style={[
+                    styles.modalButton,
+                    styles.modalButtonCancel,
+                    { opacity: boostLoading ? 0.5 : 1 },
+                  ]}
+                >
                   <Text style={styles.modalButtonText}>Cancel</Text>
                 </TouchableOpacity>
               </View>
+
             </View>
           </View>
         </Modal>

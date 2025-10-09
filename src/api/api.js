@@ -1,7 +1,7 @@
 import { commonFileUpload, commonrequest } from './apiCall';
 import { API_BASE_URL } from './apiHelper';
 
-export const categoryLogoUrl = "https://clients.divecho.com/djbooking/public/storage";
+export const categoryLogoUrl = "https://app.tisabooking.com/public/storage";
 
 export const signpage = async (data) => {
   return await commonrequest('POST', `${API_BASE_URL}/login`, data, "");

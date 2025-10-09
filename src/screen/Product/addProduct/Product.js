@@ -41,6 +41,8 @@ const Product = () => {
         (product?.galleries?.slice(0, 6).map(g => ({ uri: g.file_path, loading: false })) || [])
     );
     const [categories, setCategories] = useState([]);
+    console.log('categories :',categories);
+    
     const [selectedCategory, setSelectedCategory] = useState(product?.category || null);
     const [states, setStates] = useState([]);
     const [selectedState, setSelectedState] = useState(
@@ -197,6 +199,8 @@ console.log('categories :',categories);
             }));
             setStates(formattedStates);
             const categoriesData = parsedSettings.data.categories;
+            console.log('categoriesData :',categoriesData);
+            
             const formattedCategories = categoriesData.map(item => ({
                 id: item.id?.toString(),
                 name: item.name,

@@ -12,6 +12,7 @@ const searchBar = ({
     secureTextEntry,
     inRef,
     key,
+    placeholderTextColor,
     onKeyPress,
     returnKeyType,
     autoFocus,
@@ -28,9 +29,9 @@ const searchBar = ({
                 keyboardType={keyboardType}
                 maxLength={maxLength}
                 secureTextEntry={secureTextEntry}
+                placeholderTextColor={placeholderTextColor}
                 returnKeyType={returnKeyType}
                 onKeyPress={onKeyPress}
-                placeholderTextColor={"black"}
                 
             />
         </View>

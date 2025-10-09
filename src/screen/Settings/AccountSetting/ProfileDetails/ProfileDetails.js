@@ -272,7 +272,7 @@ const ProfileDetails = () => {
                         </View>
 
                         <View style={styles.textInputWrap}>
-                            <Text style={[styles.textInputTitle, textStyle]}>Mobile Number</Text>
+                            <Text style={[styles.textInputTitle, textStyle]}>Alternate Mobile Number</Text>
                             <InvoiceTextInput
                                 style={[styles.textInput, containerStyle]}
                                 placeholder={'Enter Mobile Number'}

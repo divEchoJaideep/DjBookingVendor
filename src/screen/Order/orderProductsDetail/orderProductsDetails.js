@@ -52,6 +52,8 @@ const OrderProductsDetails = ({ route }) => {
     const [orderToReject, setOrderToReject] = useState(null);
     const [orderCancelDays, setOrderCancelDays] = useState(0);
     const [isCompleteAllowed, setIsCompleteAllowed] = useState(false);
+    const [loadingAction, setLoadingAction] = useState(null);
+
 
     const navigation = useNavigation();
 
@@ -89,11 +91,9 @@ const OrderProductsDetails = ({ route }) => {
     useEffect(() => {
         if (orderCancelDays && eventDate) {
             const today = new Date();
-            today.setHours(0, 0, 0, 0); // normalize
+            today.setHours(0, 0, 0, 0); 
             const timeDiff = eventDate.getTime() - today.getTime();
             const daysRemaining = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
-
-            // ✅ order tabhi cancel ho jab event se abhi orderCancelDays se jyada din bache ho
             setIsCancelAllowed(daysRemaining > parseInt(orderCancelDays));
         }
     }, [orderCancelDays, eventDate]);
@@ -127,8 +127,14 @@ const OrderProductsDetails = ({ route }) => {
     };
 
     const handleAccept = async (productID) => {
-        updateOrderStatusHandler(productID, 'accepted');
+        try {
+            setLoadingAction('accept');
+            await updateOrderStatusHandler(productID, 'accepted');
+        } finally {
+            setLoadingAction(null);
+        }
     };
+
 
     const handleDecline = (order) => {
         setOrderToReject(order);
@@ -145,13 +151,24 @@ const OrderProductsDetails = ({ route }) => {
             return;
         }
 
-        await updateOrderStatusHandler(productID, 'cancelled', cancelReason);
-        setCancelModalVisible(false);
-        setCancelReason('');
+        try {
+            setLoadingAction('cancel');
+            await updateOrderStatusHandler(productID, 'cancelled', cancelReason);
+            setCancelModalVisible(false);
+            setCancelReason('');
+        } finally {
+            setLoadingAction(null);
+        }
     };
 
+
     const handleComplete = async () => {
-        await updateOrderStatusHandler(productID, 'completed');
+        try {
+            setLoadingAction('complete');
+            await updateOrderStatusHandler(productID, 'completed');
+        } finally {
+            setLoadingAction(null);
+        }
     };
 
     const confirmReject = async () => {
@@ -160,13 +177,19 @@ const OrderProductsDetails = ({ route }) => {
             return;
         }
 
-        if (orderToReject) {
-            await updateOrderStatusHandler(orderToReject.productID || productID, 'rejected', cancelReason);
-            setOrderToReject(null);
-            setCancelReason('');
-            setModalVisible(false);
+        try {
+            setLoadingAction('reject');
+            if (orderToReject) {
+                await updateOrderStatusHandler(orderToReject.productID || productID, 'rejected', cancelReason);
+                setOrderToReject(null);
+                setCancelReason('');
+                setModalVisible(false);
+            }
+        } finally {
+            setLoadingAction(null);
         }
     };
+
 
     const cancelReject = () => {
         setOrderToReject(null);
@@ -354,66 +377,56 @@ const OrderProductsDetails = ({ route }) => {
                     </View>
                 </Content>
 
-                {/* {product?.status?.toLowerCase() === 'accepted' && (
-                    <View style={[styles.fixedButtonContainer, containerStyle]}>
-                        <MyButton
-                            title={'Cancel Order'}
-                            style={styles.rateOrder}
-                            styletext={styles.rateOrderText}
-                            onPress={handleCancel}
-                        />
-                        <MyButton
-                            title={'Complete Order'}
-                            style={styles.orderAgain}
-                            styletext={styles.orderAgainText}
-                            onPress={handleComplete}
-                        />
-                    </View>
-                )} */}
                 {product?.status?.toLowerCase() === 'accepted' && (
                     <View style={[styles.fixedButtonContainer, containerStyle]}>
                         <MyButton
-                            title={'Cancel Order'}
-                            style={[
-                                styles.rateOrder,
-                                !isCancelAllowed && { opacity: 0.5 },
-                            ]}
+                            title={loadingAction === 'cancel' ? 'Cancelling...' : 'Cancel Order'}
+                            style={[styles.rateOrder, (!isCancelAllowed || loadingAction) && { opacity: 0.5 }]}
                             styletext={styles.rateOrderText}
-                            onPress={isCancelAllowed ? handleCancel : () => {
-                                Alert.alert('Cancellation not allowed', `You can only cancel the order at least ${orderCancelDays} days before the event.`);
-                            }}
-                            disabled={!isCancelAllowed}
+                            onPress={
+                                !isCancelAllowed || loadingAction
+                                    ? () => { }
+                                    : handleCancel
+                            }
+                            disabled={!isCancelAllowed || !!loadingAction}
+                            loading={loadingAction === 'cancel'}
                         />
                         <MyButton
-                            title={'Complete Order'}
-                            style={[styles.orderAgain, !isCompleteAllowed && { opacity: 0.5 }]}
+                            title={loadingAction === 'complete' ? 'Completing...' : 'Complete Order'}
+                            style={[styles.orderAgain, (!isCompleteAllowed || loadingAction) && { opacity: 0.5 }]}
                             styletext={styles.orderAgainText}
-                            onPress={isCompleteAllowed ? handleComplete : () => {
-                                Alert.alert('Completion not allowed', 'You can only complete the order on or after the event date.');
-                            }}
-                            disabled={!isCompleteAllowed}
+                            onPress={
+                                !isCompleteAllowed || loadingAction
+                                    ? () => { }
+                                    : handleComplete
+                            }
+                            disabled={!isCompleteAllowed || !!loadingAction}
+                            loading={loadingAction === 'complete'}
                         />
-
                     </View>
                 )}
-
 
                 {product?.status?.toLowerCase() === 'pending' && (
                     <View style={[styles.fixedButtonContainer, containerStyle]}>
                         <MyButton
-                            title={'Reject Order'}
-                            style={styles.rateOrder}
+                            title={loadingAction === 'reject' ? 'Rejecting...' : 'Reject Order'}
+                            style={[styles.rateOrder, loadingAction && { opacity: 0.5 }]}
                             styletext={styles.rateOrderText}
-                            onPress={() => handleDecline(product)}
+                            onPress={loadingAction ? () => { } : () => handleDecline(product)}
+                            disabled={!!loadingAction}
+                            loading={loadingAction === 'reject'}
                         />
                         <MyButton
-                            title={'Accept Order'}
-                            style={styles.orderAgain}
+                            title={loadingAction === 'accept' ? 'Accepting...' : 'Accept Order'}
+                            style={[styles.orderAgain, loadingAction && { opacity: 0.5 }]}
                             styletext={styles.orderAgainText}
-                            onPress={() => handleAccept(productID)}
+                            onPress={loadingAction ? () => { } : () => handleAccept(productID)}
+                            disabled={!!loadingAction}
+                            loading={loadingAction === 'accept'}
                         />
                     </View>
                 )}
+
 
                 <Modal
                     animationType="slide"

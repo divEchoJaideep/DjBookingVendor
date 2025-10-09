@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, Image, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Image, Alert, ActivityIndicator } from 'react-native';
 import React, { useEffect, useState, useRef } from 'react';
 import { OtpInput } from "react-native-otp-entry";
 import { useNavigation } from '@react-navigation/native';
@@ -15,21 +15,18 @@ const otpVerification = ({ route }) => {
   const [otp, setOtp] = useState('');
   const [showResend, setShowResend] = useState(false);
   const [timer, setTimer] = useState(119);
+  const [loading, setLoading] = useState(false);         
+  const [resendLoading, setResendLoading] = useState(false); 
 
-  const endTimeRef = useRef(null); 
+  const endTimeRef = useRef(null);
 
-  // 🔥 Timer Effect (dependent on timer reset)
   useEffect(() => {
     if (!endTimeRef.current) {
-      endTimeRef.current = Date.now() + 119000; 
+      endTimeRef.current = Date.now() + 119000;
     }
 
     const interval = setInterval(() => {
-      const remaining = Math.max(
-        0,
-        Math.floor((endTimeRef.current - Date.now()) / 1000)
-      );
-
+      const remaining = Math.max(0, Math.floor((endTimeRef.current - Date.now()) / 1000));
       setTimer(remaining);
 
       if (remaining <= 0) {
@@ -39,10 +36,15 @@ const otpVerification = ({ route }) => {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [endTimeRef.current]); // 👈 dependency se naya interval chalega
+  }, [endTimeRef.current]);
 
-  // ✅ Verify OTP
   const validateOTPAndPassword = async () => {
+    if (!otp) {
+      Alert.alert('Alert', 'Please enter the OTP.');
+      return;
+    }
+
+    setLoading(true);
     try {
       const response = await otpVerify({ phone, otp });
       if (response.success) {
@@ -62,11 +64,13 @@ const otpVerification = ({ route }) => {
       } else {
         Alert.alert('Error', error.message || 'Please try again');
       }
+    } finally {
+      setLoading(false); 
     }
   };
 
-  // ✅ Resend OTP
   const sendAgain = async () => {
+    setResendLoading(true); 
     try {
       const response = await SignUpUser({
         phone,
@@ -75,15 +79,17 @@ const otpVerification = ({ route }) => {
       });
 
       if (response.success) {
-        Alert.alert('Alert','We have sent the code again!');
+        Alert.alert('Alert', 'We have sent the code again!');
         setShowResend(false);
         setTimer(119);
-        endTimeRef.current = Date.now() + 119000; // ⏳ reset timer
+        endTimeRef.current = Date.now() + 119000;
       } else {
         Alert.alert(response?.message || 'Failed to resend OTP');
       }
     } catch (error) {
       Alert.alert('Error', error.message || 'Could not resend OTP');
+    } finally {
+      setResendLoading(false); 
     }
   };
 
@@ -99,7 +105,8 @@ const otpVerification = ({ route }) => {
         hasHeader
         scrollEnabled
         contentContainerStyle={styles.contentContainer}
-        extraScrollHeight={1}>
+        extraScrollHeight={1}
+      >
         <View style={styles.container}>
           <View>
             <Text style={styles.title}>Welcome</Text>
@@ -131,18 +138,33 @@ const otpVerification = ({ route }) => {
             />
           </View>
 
-          <MyButton
-            title={'Verify'}
-            style={styles.sendOTPButton}
-            styletext={styles.btnText}
-            onPress={validateOTPAndPassword}
-          />
+
+          {loading ? (
+            <View style={{ marginTop: 10, alignItems: 'center' }}>
+              <ActivityIndicator size="small" color="#6C63FF" />
+              {/* <Text style={{ color: '#6C63FF', marginTop: 5 }}>Verifying your OTP...</Text> */}
+            </View>
+          ) : (
+            <MyButton
+              title={loading ? 'Verifying... OTP' : 'Verify OTP'}
+              style={[styles.sendOTPButton, loading && { opacity: 0.7 }]}
+              styletext={styles.btnText}
+              onPress={!loading ? validateOTPAndPassword : null}
+              disabled={loading}
+            />
+
+          )}
 
           <View style={[styles.redirectWrap]}>
             {timer > 0 ? (
               <Text style={styles.redirectText}>
                 Resend code in: {formatTime(timer)}
               </Text>
+            ) : resendLoading ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                <ActivityIndicator size="small" color="#6C63FF" />
+                <Text style={styles.redirectText}>Resending...</Text>
+              </View>
             ) : (
               <>
                 <Text style={styles.redirectText}>Didn't receive code?</Text>

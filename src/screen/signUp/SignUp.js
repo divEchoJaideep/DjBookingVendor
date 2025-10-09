@@ -51,6 +51,7 @@ const SignUp = () => {
 
         try {
             const response = await SignUpUser(createRegester);
+            console.log('response sign up :', response);
             if (response?.success) {
                 navigation.navigate('OTPVerification', { phone, password, password_confirmation });
             } else {

@@ -1,4 +1,4 @@
 
 
 
-export const API_BASE_URL = 'https://clients.divecho.com/djbooking/vendor';  
+export const API_BASE_URL = 'https://app.tisabooking.com/vendor';  

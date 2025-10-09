@@ -38,7 +38,8 @@ const OrderTabs = () => {
                             fontWeight: 'bold',
                             fontSize: 14,
                             textAlign: 'center',
-                        }}>                            Pending Order
+                        }}>
+                            Pending Order
                         </Text>
                     ),
                 }}
@@ -50,11 +51,12 @@ const OrderTabs = () => {
                 options={{
                     tabBarLabel: ({ focused, color }) => (
                         <Text style={{
-                            color: focused ? '#007bff' : '#888', 
+                            color: focused ? '#007bff' : '#888',
                             fontWeight: 'bold',
                             fontSize: 14,
                             textAlign: 'center',
-                        }}>                            Accepted Order
+                        }}>
+                            Accepted Order
                         </Text>
                     ),
                 }}
@@ -66,11 +68,12 @@ const OrderTabs = () => {
                 options={{
                     tabBarLabel: ({ focused, color }) => (
                         <Text style={{
-                            color: focused ? '#007bff' : '#888', 
+                            color: focused ? '#007bff' : '#888',
                             fontWeight: 'bold',
                             fontSize: 14,
                             textAlign: 'center',
-                        }}>                            Rejected Order
+                        }}>
+                             Rejected Order
                         </Text>
                     ),
                 }}
@@ -82,11 +85,12 @@ const OrderTabs = () => {
                 options={{
                     tabBarLabel: ({ focused, color }) => (
                         <Text style={{
-                            color: focused ? '#007bff' : '#888', 
+                            color: focused ? '#007bff' : '#888',
                             fontWeight: 'bold',
                             fontSize: 14,
                             textAlign: 'center',
-                        }}>                            Cancelled Order
+                        }}> 
+                         Cancelled Order
                         </Text>
                     ),
                 }}
@@ -98,11 +102,12 @@ const OrderTabs = () => {
                 options={{
                     tabBarLabel: ({ focused, color }) => (
                         <Text style={{
-                            color: focused ? '#007bff' : '#888', // important
+                            color: focused ? '#007bff' : '#888', 
                             fontWeight: 'bold',
                             fontSize: 14,
                             textAlign: 'center',
-                        }}>                            Completed Order
+                        }}> 
+                         Completed Order
                         </Text>
                     ),
                 }}
