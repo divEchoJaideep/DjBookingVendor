@@ -12,8 +12,6 @@ export const UnreadProvider = ({ children }) => {
             const user = await AsyncStorage.getItem('user');
             if (!user) return;
             const vendorId = JSON.parse(user).id + '_vendor';
-            console.log('userId :', vendorId);
-
             const snapshot = await firestore()
                 .collection('chats')
                 .where('participantIds', 'array-contains', vendorId)
@@ -28,7 +26,7 @@ export const UnreadProvider = ({ children }) => {
 
             setHasUnread(unreadFound);
         } catch (e) {
-            console.error("Failed to check unread:", e);
+            // console.error("Failed to check unread:", e);
         }
     };
 

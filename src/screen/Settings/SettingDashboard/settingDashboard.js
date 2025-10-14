@@ -27,7 +27,6 @@ const SettingDashboard = () => {
     const containerStyle = isEnabled ? styles.darkContainer : styles.lightContainer;
     const textStyle = isEnabled ? styles.darkText : styles.lightText;
     const lightGray = isEnabled ? styles.lightGrayContainer : styles.buttonbackgroundContrainer;
-console.log('notification :',notification);
 
     useFocusEffect(
         useCallback(() => {
@@ -52,12 +51,11 @@ console.log('notification :',notification);
             const token = await AsyncStorage.getItem('userToken');
             const header = `Bearer ${token}`;
             const response = await notificationCount(header);
-            console.log('Notification Count Response:', response);
             if (response?.status) {
                 setNotification(response?.data?.unread_count);
             }
         } catch (error) {
-            console.error('Error fetching notification count:', error);
+            // console.error('Error fetching notification count:', error);
             return 0;
         }
     };

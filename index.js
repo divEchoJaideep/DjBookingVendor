@@ -5,7 +5,7 @@ import App from './App';
 import { name as appName } from './app.json';
 
 messaging().setBackgroundMessageHandler(async remoteMessage => {
-  // console.log('Message handled in the background!', remoteMessage);
+  
   // await onDisplayNotification(remoteMessage);
 });
 

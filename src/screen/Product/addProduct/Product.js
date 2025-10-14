@@ -26,9 +26,9 @@ const Product = () => {
 
     const route = useRoute();
     const { product = {} } = route.params || {};
-    console.log('product :',product);
-    
+
     const [loading, setLoading] = useState(false)
+    const [orderLoading , setOrderLoading] = useState(false)
     const { isEnabled } = useTheme();
     const containerStyle = isEnabled ? styles.darkContainer : styles.backgroundContainer;
     const textStyle = isEnabled ? styles.darkText : styles.lightText;
@@ -41,8 +41,6 @@ const Product = () => {
         (product?.galleries?.slice(0, 6).map(g => ({ uri: g.file_path, loading: false })) || [])
     );
     const [categories, setCategories] = useState([]);
-    console.log('categories :',categories);
-    
     const [selectedCategory, setSelectedCategory] = useState(product?.category || null);
     const [states, setStates] = useState([]);
     const [selectedState, setSelectedState] = useState(
@@ -66,14 +64,14 @@ const Product = () => {
     const [loadingSettings, setLoadingSettings] = useState(true);
     const [uploadBannerProgress, setUploadBannerProgress] = useState(0);
     const [uploadProgresses, setUploadProgresses] = useState({});
-    const [uploadingImages, setUploadingImages] = useState([]);
+    console.log('uploadProgresses :',uploadProgresses);
+    
+    const [uploading, setUploading] = useState(false);
     const [keyboardHeight, setKeyboardHeight] = useState(0);
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-    const [currentSelectionType, setCurrentSelectionType] = useState(null); 
+    const [currentSelectionType, setCurrentSelectionType] = useState(null);
     const [currentDateField, setCurrentDateField] = useState(null);
     const [showModal, setShowModal] = useState(false);
-console.log('categories :',categories);
-
     const [main, setMain] = useState({
         title: product?.title || '',
         description: product?.metas?.find(m => m.meta_key === 'description')?.meta_value || '',
@@ -170,11 +168,11 @@ console.log('categories :',categories);
             const response = await setting(header);
             if (response) {
                 await AsyncStorage.setItem('Settings', JSON.stringify(response));
-                setLoadingSettings(false);
+                 setLoadingSettings(false);
             }
         } catch (error) {
-            Alert.alert('Error fetching settings:');
-            setLoadingSettings(false);
+            // Alert.alert('Error fetching settings:');
+             setLoadingSettings(false);
         }
     };
 
@@ -199,25 +197,23 @@ console.log('categories :',categories);
             }));
             setStates(formattedStates);
             const categoriesData = parsedSettings.data.categories;
-            console.log('categoriesData :',categoriesData);
-            
             const formattedCategories = categoriesData.map(item => ({
                 id: item.id?.toString(),
                 name: item.name,
-                 icon: { uri: `${categoryLogoUrl}/${item.image}` },
+                icon: { uri: `${categoryLogoUrl}/${item.image}` },
             }));
 
             setCategories(formattedCategories);
 
         } catch (error) {
-            Alert.alert('Alert', ' Settings are not found ')
+            // Alert.alert('Alert', ' Settings are not found ')
         }
     };
 
 
     const fetchSubcategories = async (category_id) => {
         setSubcategories([])
-        setFields([]);
+        // setFields([]);
         // setSelectedSubcategory();
         try {
 
@@ -241,27 +237,31 @@ console.log('categories :',categories);
     useFocusEffect(
         React.useCallback(() => {
             if (selectedSubcategory) {
-                getFildes(selectedSubcategory);
+                getFildes(selectedCategory, selectedSubcategory);
+            } else if (selectedCategory) {
+                getFildes(selectedCategory);
+
             }
         }, [selectedCategory, selectedSubcategory])
     );
 
-    const getFildes = async (subcategory_id) => {
+
+    const getFildes = async (category, subcategory = null) => {
         // setFields([]);
         const token = await AsyncStorage.getItem('userToken');
         const header = `Bearer ${token}`;
-
-        const dataItem = {
-            subcategory_id: subcategory_id.id,
-            category_id: Number(selectedCategory.id)
+        let dataItem = {
+            category_id: Number(category.id)
         };
-
-
+        if (subcategory?.id) {
+            dataItem = {
+                ...dataItem,
+                subcategory_id: subcategory?.id,
+            };
+        }
         const response = await Field(dataItem, header);
-
         if (response?.success && Array.isArray(response?.data)) {
             setFields(response.data);
-
         } else {
             setFields([]);
         }
@@ -269,15 +269,11 @@ console.log('categories :',categories);
     };
 
 
-
-
     const fetchCities = async (state_id) => {
         try {
             const token = await AsyncStorage.getItem('userToken');
             const header = `Bearer ${token}`;
-
             const response = await getCities(state_id, header);
-
             const formatted = response.data.map(item => ({
                 label: item.city,
                 value: item.id,
@@ -290,14 +286,11 @@ console.log('categories :',categories);
     };
 
 
-
     const fetchLocalities = async (city_id) => {
         try {
             const token = await AsyncStorage.getItem('userToken');
             const header = `Bearer ${token}`;
-
             const response = await getLocalities(city_id, header);
-
             const formatted = response.data.map(item => ({
                 label: item.locality,
                 value: item.id,
@@ -309,13 +302,9 @@ console.log('categories :',categories);
     };
 
 
-
-    const MAX_IMAGE_SIZE = 4 * 1024 * 1024;
-
     const selectBannerImage = async () => {
         const token = await AsyncStorage.getItem('userToken');
         const header = `Bearer ${token}`;
-
         try {
             const result = await launchImageLibrary({
                 mediaType: 'photo',
@@ -329,11 +318,9 @@ console.log('categories :',categories);
 
             const selectedImage = result.assets[0];
             const tempUri = selectedImage.uri;
-
             setBanner(tempUri);
             setBannerLoading(true);
             setUploadBannerProgress(0);
-
             const formData = new FormData();
             formData.append('upload', {
                 uri: tempUri,
@@ -354,11 +341,11 @@ console.log('categories :',categories);
             }
 
         } catch (error) {
-            Alert.alert('Error', error?.message || 'Something went wrong while uploading.');
-            setBanner(null);
-            setBannerServerPath(null);
-            setUploadBannerProgress(0);
-            setBannerLoading(false);
+            // Alert.alert('Error', error?.message || 'Something went wrong while uploading.');
+            // setBanner(null);
+            // setBannerServerPath(null);
+            // setUploadBannerProgress(0);
+            // setBannerLoading(false);
         }
     };
 
@@ -366,85 +353,108 @@ console.log('categories :',categories);
         setBanner('')
     }
 
-
     const multiSelectPhoto = async () => {
-        if (images.length >= 6) {
-            Alert.alert('Limit Reached', 'You can upload a maximum of 6 images.');
-            return;
-        }
+    if (images.length >= 6) {
+        Alert.alert('Limit Reached', 'You can upload a maximum of 6 images.');
+        return;
+    }
 
-        const token = await AsyncStorage.getItem('userToken');
-        const header = `Bearer ${token}`;
-        const options = {
-            mediaType: 'photo',
-            includeBase64: false,
-            selectionLimit: 6 - images.length,
-            maxWidth: 800,
-            maxHeight: 800,
-            quality: 0.5,
-        };
+    const token = await AsyncStorage.getItem('userToken');
+    const header = `Bearer ${token}`;
 
-        launchImageLibrary(options, async (response) => {
-            if (response.didCancel) return;
+    const options = {
+        mediaType: 'photo',
+        includeBase64: false,
+        selectionLimit: 6 - images.length,
+        maxWidth: 800,
+        maxHeight: 800,
+        quality: 0.5,
+    };
 
-            const selectedAssets = response.assets;
-            const assetsToUpload = selectedAssets.slice(0, 6 - images.length);
+    launchImageLibrary(options, async (response) => {
+        if (response.didCancel) return;
 
-            for (let i = 0; i < assetsToUpload.length; i++) {
-                const selectedImage = assetsToUpload[i];
-                const tempId = Date.now() + i;
+        const selectedAssets = response.assets;
+        if (!selectedAssets || selectedAssets.length === 0) return;
 
-                setImages(prev => [
-                    ...prev,
-                    { id: tempId, uri: null, loading: true },
-                ]);
+        const assetsToUpload = selectedAssets.slice(0, 6 - images.length);
 
-                const formData = new FormData();
-                formData.append('upload', {
-                    uri: Platform.OS === 'ios' ? selectedImage.uri.replace('file://', '') : selectedImage.uri,
-                    type: selectedImage.type || 'image/jpeg',
-                    name: selectedImage.fileName || `product_${Date.now()}.jpg`,
+        setUploading(true);
+
+        for (let i = 0; i < assetsToUpload.length; i++) {
+            const selectedImage = assetsToUpload[i];
+            const fileSizeMB = selectedImage.fileSize / (1024 * 1024); // convert bytes → MB
+            const tempId = Date.now() + i;
+
+            if (fileSizeMB > 10) {
+                Alert.alert(
+                    'File Too Large',
+                    `${selectedImage.fileName || 'One image'} exceeds 10 MB and will not be uploaded.`
+                );
+                continue; 
+            }
+
+            setImages(prev => [
+                ...prev,
+                { id: tempId, uri: null, loading: true },
+            ]);
+
+            const formData = new FormData();
+            formData.append('upload', {
+                uri:
+                    Platform.OS === 'ios'
+                        ? selectedImage.uri.replace('file://', '')
+                        : selectedImage.uri,
+                type: selectedImage.type || 'image/jpeg',
+                name: selectedImage.fileName || `product_${Date.now()}.jpg`,
+            });
+
+            try {
+                const uploadResponse = await ImageUpload(formData, header, (progressEvent) => {
+                    const percentCompleted = Math.round(
+                        (progressEvent.loaded * 100) / progressEvent.total
+                    );
+                    setUploadProgresses(prev => ({
+                        ...prev,
+                        [tempId]: percentCompleted,
+                    }));
                 });
 
-                try {
-                    const uploadResponse = await ImageUpload(formData, header, (progressEvent) => {
-                        const percentCompleted = Math.round(
-                            (progressEvent.loaded * 100) / progressEvent.total
-                        );
-                        setUploadProgresses(prev => ({
-                            ...prev,
-                            [tempId]: percentCompleted,
-                        }));
-                    });
+                console.log('uploadResponse:', uploadResponse);
 
-                    if (uploadResponse?.path) {
-                        setImages(prevImages => prevImages.map(img =>
+                if (uploadResponse?.path) {
+                    setImages(prevImages =>
+                        prevImages.map(img =>
                             img.id === tempId
                                 ? { ...img, uri: uploadResponse.path, loading: false }
                                 : img
-                        ));
-                    } else {
-                        throw new Error(uploadResponse?.message || 'Upload failed.');
-                    }
-
-                    setUploadProgresses(prev => {
-                        const updated = { ...prev };
-                        delete updated[tempId];
-                        return updated;
-                    });
-
-                } catch (error) {
-                    Alert.alert('Upload Failed', error.message || 'Try again later.');
-                    setImages(prev => prev.filter(img => img.id !== tempId));
-                    setUploadProgresses(prev => {
-                        const updated = { ...prev };
-                        delete updated[tempId];
-                        return updated;
-                    });
+                        )
+                    );
+                } else {
+                    throw new Error(uploadResponse?.message || 'Upload failed.');
                 }
+
+                setUploadProgresses(prev => {
+                    const updated = { ...prev };
+                    delete updated[tempId];
+                    return updated;
+                });
+
+            } catch (error) {
+                console.log('Upload failed:', error.message);
+                setImages(prev => prev.filter(img => img.id !== tempId));
+                setUploadProgresses(prev => {
+                    const updated = { ...prev };
+                    delete updated[tempId];
+                    return updated;
+                });
             }
-        });
-    };
+        }
+
+        setUploading(false);
+    });
+};
+
 
 
     const removeimages = () => {
@@ -464,7 +474,8 @@ console.log('categories :',categories);
             <TouchableOpacity
                 onPress={() => {
                     setSelectedSubcategory(item)
-                    getFildes(item)
+                    setDynamicFieldValues({});
+                    // getFildes(item)
                 }
 
                 }
@@ -487,72 +498,75 @@ console.log('categories :',categories);
 
 
 
-    const handleSaveProduct = async () => {
-        if (!description || description.trim().length === 0) {
-            Alert.alert('Alert', 'Description field is required.');
+   const handleSaveProduct = async () => {
+    if (!description || description.trim().length === 0) {
+        Alert.alert('Alert', 'Description field is required.');
+        return false;
+    }
+
+    if (selectedCategory) {
+        if (subcategories.length > 0 && !selectedSubcategory) {
+            Alert.alert('Alert', 'Subcategory field is required.');
             return false;
         }
+    }
 
-        if (selectedCategory) {
-            if (subcategories.length > 0 && !selectedSubcategory) {
-                Alert.alert('Alert', 'Subcategory field is required.');
-                return false;
-            }
-        }
+    const dynamicValues = Object.fromEntries(
+        Object.entries(dynamicFieldValues).map(([key, value]) => [
+            key,
+            Array.isArray(value) ? value.join(',') : value,
+        ])
+    );
 
-        const dynamicValues = Object.fromEntries(
-            Object.entries(dynamicFieldValues).map(([key, value]) => [
-                key,
-                Array.isArray(value) ? value.join(',') : value,
-            ])
-        );
+    dynamicValues.description = description || product?.description;
+    dynamicValues.address = address;
+    dynamicValues.price = price;
 
-        dynamicValues.description = description || product?.description;
-        dynamicValues.address = address;
-        dynamicValues.price = price;
-
-        const productData = {
-            title: title || product?.title,
-            category: selectedCategory?.id,
-            subcategory: selectedSubcategory?.id,
-            state_id: selectedState?.value,
-            city_id: selectedCity?.value,
-            locality_id: selectedLocality?.value,
-            banner: bannerPath || product?.banner,
-            images: images.map(img => img.uri),
-            dynamic: dynamicValues,
-        };
-
-        const token = await AsyncStorage.getItem('userToken');
-        const header = `Bearer ${token}`;
-
-        try {
-            let response;
-
-            if (product?.id) {
-                response = await updateProduct(product.id, productData, header);
-            } else {
-                response = await createProduct(productData, header);
-            }
-
-            if (response?.success) {
-                Alert.alert('Success', response?.message, [
-                    {
-                        text: 'OK',
-                        onPress: () => navigation.replace('ProductsDashboard'),
-                    },
-                ]);
-            } else if (response?.errors) {
-                const errorMessages = Object.values(response.errors).flat().join('\n');
-                Alert.alert('Validation Error', errorMessages);
-            } else {
-                Alert.alert('Error', response?.message || 'Something went wrong');
-            }
-        } catch (error) {
-            Alert.alert('Error', 'Something went wrong');
-        }
+    const productData = {
+        title: title || product?.title,
+        category: selectedCategory?.id,
+        subcategory: selectedSubcategory?.id,
+        state_id: selectedState?.value,
+        city_id: selectedCity?.value,
+        locality_id: selectedLocality?.value,
+        banner: bannerPath || product?.banner,
+        images: images.map(img => img.uri),
+        dynamic: dynamicValues,
     };
 
+    const token = await AsyncStorage.getItem('userToken');
+    const header = `Bearer ${token}`;
+
+    try {
+        setOrderLoading(true); 
+
+        let response;
+
+        if (product?.id) {
+            response = await updateProduct(product.id, productData, header);
+        } else {
+            response = await createProduct(productData, header);
+        }
+
+        if (response?.success) {
+            Alert.alert('Success', response?.message, [
+                {
+                    text: 'OK',
+                    onPress: () => navigation.replace('ProductsDashboard'),
+                },
+            ]);
+        } else if (response?.errors) {
+            const errorMessages = Object.values(response.errors).flat().join('\n');
+            Alert.alert('Validation Error', errorMessages);
+        } else {
+            Alert.alert('Error', response?.message || 'Something went wrong');
+        }
+    } catch (error) {
+        Alert.alert('Error', 'Something went wrong');
+    } finally {
+        setOrderLoading(false); 
+    }
+};
     const showDatePicker = (fieldName) => {
         setCurrentDateField(fieldName);
         setDatePickerVisibility(true);
@@ -567,7 +581,7 @@ console.log('categories :',categories);
         hideDatePicker();
     };
 
-    const renderProductImage = ({ item, index }) => {
+   const renderProductImage = ({ item, index }) => {
         const isStillLoading =
             item.loading || (uploadProgresses[index] != null && uploadProgresses[index] < 100);
 
@@ -615,6 +629,7 @@ console.log('categories :',categories);
             </TouchableOpacity >
         );
     };
+
     const onDateChange = (event, selectedDate) => {
         if (Platform.OS !== 'ios') {
             hideDatePicker();
@@ -651,6 +666,11 @@ console.log('categories :',categories);
     const handleCloseBottomSheet = useCallback(() => {
         modelRef.current?.close();
     }, []);
+
+
+    const isSavingDisabled = orderLoading || bannerLoading || uploading;
+
+
     return (
         <Container lightContent={isEnabled} paddingBottomContainer={true} safeAreaView safeAreaViewHeader conatinerStyle={containerStyle}>
             <View style={{
@@ -682,7 +702,7 @@ console.log('categories :',categories);
                 keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 20}
             >
                 <ScrollView
-                    contentContainerStyle={{ flexGrow: 1, paddingBottom: 20,}}
+                    contentContainerStyle={{ flexGrow: 1, paddingBottom: 20, }}
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
                 >
@@ -777,17 +797,7 @@ console.log('categories :',categories);
                             />
                         </View>
 
-                        <View style={[styles.textInputWrap, { paddingBottom: 10 }]}>
-                            <Text style={[styles.textInputTitle, textStyle]}>Description</Text>
-                            <InvoiceTextInput
-                                placeholder={'Enter Description'}
-                                style={[styles.textInput, containerStyle]}
-                                placeholderTextColor={isEnabled ? '#fff' : 'gray'}
-                                color={isEnabled ? '#fff' : '#121212'}
-                                value={description}
-                                onChangeText={(val) => setMain({ ...main, description: val })}
-                            />
-                        </View>
+
 
                         <View style={[styles.textInputWrap, { paddingBottom: 10 }]}>
                             <Text style={[styles.textInputTitle, textStyle]}>Category</Text>
@@ -830,7 +840,7 @@ console.log('categories :',categories);
                                                         }}
                                                     >
                                                         <Image source={item.icon} style={styles.listCategoryIcon} />
-                                                       <Text style={[styles.paymentText, { textTransform: 'capitalize' }]}>{item.name}</Text>
+                                                        <Text style={[styles.paymentText, { textTransform: 'capitalize' }]}>{item.name}</Text>
 
                                                     </TouchableOpacity>
                                                 )
@@ -921,54 +931,54 @@ console.log('categories :',categories);
                                 }
 
                                 if (item.type === 'select' && item.options) {
-    const optionsArray = item.options.split(',').map(opt => ({
-        label: opt,
-        value: opt,
-    }));
+                                    const optionsArray = item.options.split(',').map(opt => ({
+                                        label: opt,
+                                        value: opt,
+                                    }));
 
-    return (
-        <View style={[styles.textInputWrap, { paddingBottom: 10 }]}>
-            <Text
-                style={[
-                    styles.textInputTitle,
-                    { color: isEnabled ? '#fff' : '#121212' }
-                ]}
-            >
-                {item.name}
-            </Text>
+                                    return (
+                                        <View style={[styles.textInputWrap, { paddingBottom: 10 }]}>
+                                            <Text
+                                                style={[
+                                                    styles.textInputTitle,
+                                                    { color: isEnabled ? '#fff' : '#121212' }
+                                                ]}
+                                            >
+                                                {item.name}
+                                            </Text>
 
-            <View style={[styles.picker, containerStyle]}>
-                <Dropdown
-                containerStyle={containerStyle}
-                    style={{
-                        height: 40,
-                        borderColor: '#ccc',
-                        borderWidth: 1,
-                        borderRadius: 8,
-                        paddingHorizontal: 10,
-                    }}
-                    placeholderStyle={{ color: '#999' }}
-                    selectedTextStyle={{
-                        color: isEnabled ? '#fff' : '#000',
-                    }}
-                    itemTextStyle={{
-                        color: isEnabled ? '#fff' : '#000',
-                    }}
-                    data={optionsArray}
-                    activeColor={containerStyle}
-                     placeholder="Select an option"   
-                    search
-                    searchPlaceholder="Search..."
-                    labelField="label"
-                    valueField="value"
-                    value={dynamicFieldValues[item.name] || null}
-                    onChange={val => setDynamicField(item.name, val.value)}
-                    maxHeight={200}
-                />
-            </View>
-        </View>
-    );
-}
+                                            <View style={[styles.picker, containerStyle]}>
+                                                <Dropdown
+                                                    containerStyle={containerStyle}
+                                                    style={{
+                                                        height: 40,
+                                                        borderColor: '#ccc',
+                                                        borderWidth: 1,
+                                                        borderRadius: 8,
+                                                        paddingHorizontal: 10,
+                                                    }}
+                                                    placeholderStyle={{ color: '#999' }}
+                                                    selectedTextStyle={{
+                                                        color: isEnabled ? '#fff' : '#000',
+                                                    }}
+                                                    itemTextStyle={{
+                                                        color: isEnabled ? '#fff' : '#000',
+                                                    }}
+                                                    data={optionsArray}
+                                                    activeColor={containerStyle}
+                                                    placeholder="Select an option"
+                                                    search
+                                                    searchPlaceholder="Search..."
+                                                    labelField="label"
+                                                    valueField="value"
+                                                    value={dynamicFieldValues[item.name] || null}
+                                                    onChange={val => setDynamicField(item.name, val.value)}
+                                                    maxHeight={200}
+                                                />
+                                            </View>
+                                        </View>
+                                    );
+                                }
 
                                 if (item.type === 'date') {
                                     return (
@@ -1024,7 +1034,6 @@ console.log('categories :',categories);
                                         : (typeof dynamicFieldValues[item.name] === 'string'
                                             ? dynamicFieldValues[item.name].split(',')
                                             : []);
-
                                     const toggleCheckbox = (value) => {
                                         let newValues = [...selectedValues];
                                         if (newValues.includes(value)) {
@@ -1045,7 +1054,7 @@ console.log('categories :',categories);
                                                     <CheckBox
                                                         value={selectedValues.includes(opt)}
                                                         onValueChange={() => toggleCheckbox(opt)}
-                                                         tintColors={{ true: '#4CAF50', false: '#999' }}
+                                                        tintColors={{ true: '#4CAF50', false: '#999' }}
                                                     />
                                                     <Text style={{ color: isEnabled ? '#fff' : '#121212' }}>{opt}</Text>
                                                 </View>
@@ -1057,6 +1066,7 @@ console.log('categories :',categories);
                                 return null;
                             }}
                         />
+
                         <View style={[styles.textInputWrap, { paddingBottom: 10 }]}>
                             <Text style={[styles.textInputTitle, textStyle]}>Price</Text>
 
@@ -1070,7 +1080,19 @@ console.log('categories :',categories);
                                 onChangeText={(val) => setMain({ ...main, price: val })} />
 
                         </View>
-
+                        <View style={[styles.textInputWrap, { paddingBottom: 10 }]}>
+                            <Text style={[styles.textInputTitle, textStyle]}>Description</Text>
+                            <InvoiceTextInput
+                                placeholder={'Enter Description'}
+                                style={[styles.textInput, containerStyle, { minHeight: 80, }]}
+                                placeholderTextColor={isEnabled ? '#fff' : 'gray'}
+                                color={isEnabled ? '#fff' : '#121212'}
+                                value={description}
+                                multiline={true}
+                                textAlignVertical={'top'}
+                                onChangeText={(val) => setMain({ ...main, description: val })}
+                            />
+                        </View>
                         <View style={[styles.textInputWrap, { paddingBottom: 10 }]}>
                             <Text style={[styles.textInputTitle, textStyle]}>Address</Text>
 
@@ -1118,7 +1140,16 @@ console.log('categories :',categories);
                     {/* </Content> */}
                 </ScrollView>
             </KeyboardAvoidingView>
-            <MyButton title={product?.id ? 'Update Product' : 'Save Product'} style={styles.savebutton} styletext={styles.buttonText} onPress={handleSaveProduct} />
+            <MyButton
+                title={product?.id ? orderLoading ? 'Updating...' : 'Update Product' : orderLoading ? 'Saving...' : 'Save Product'}
+                style={[
+                    styles.savebutton,
+                    isSavingDisabled && { opacity: 0.6 },
+                ]}
+                styletext={styles.buttonText}
+                onPress={handleSaveProduct}
+                disabled={isSavingDisabled}
+            />
             <BottomSheetSelector
                 visible={showModal}
                 onClose={() => setShowModal(false)}

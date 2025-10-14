@@ -30,10 +30,15 @@ const SignIn = () => {
   const { phone, password } = createLogin;
 
   const handleSignIn = async () => {
-    // if (!phone) return Alert.alert('Please enter your mobile number.');
-    // if (!password) return Alert.alert('Please enter your password.');
-    // if (password.length < 6) return Alert.alert('Password must have at least 6 characters.');
+
+    const startsWithPlusOrZero = phone.startsWith('+') || phone.startsWith('0');
+    const phoneDigitsOnly = phone.replace(/\D/g, '');
+    
+    if (startsWithPlusOrZero || phoneDigitsOnly.length > 10) {
+      return Alert.alert('Alert', 'Please enter your mobile number without country code.');
+    }
     setLoading(true);
+
     try {
       await login(createLogin);
     } catch (error) {
@@ -60,10 +65,10 @@ const SignIn = () => {
           </Text>
 
           <SearchBar
-            placeholder="Mobile No."
+            placeholder="Mobile No. (without country code)"
             value={phone}
             onChangeText={(e) => setLogin({ ...createLogin, phone: e })}
-           keyboardType="number-pad"
+            keyboardType="number-pad"
             placeholderTextColor="#121212"
             color="#121212"
             maxLength={10}

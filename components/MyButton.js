@@ -1,7 +1,7 @@
 import { StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native';
 import React from 'react';
 
-const MyButton = ({ containerStyle, title, style, onPress, styletext, ImaageButton, imageStyle, tintColor }) => {
+const MyButton = ({ containerStyle,disabled, title, style, onPress, styletext, ImaageButton, imageStyle, tintColor }) => {
   const hasImage = !!ImaageButton;
 
   return (
@@ -13,6 +13,7 @@ const MyButton = ({ containerStyle, title, style, onPress, styletext, ImaageButt
           style
         ]}
         onPress={onPress}
+        disabled={disabled}
       >
         {hasImage && (
           <Image

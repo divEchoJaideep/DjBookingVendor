@@ -26,32 +26,16 @@ const SignUp = () => {
     const handleSignUp = async () => {
         const { phone, password, password_confirmation } = createRegester;
 
-        // if (!phone) {
-        //     Alert.alert("Please enter a mobile number.");
-        //     return;
-        // }
-
-        // const phoneRegex = /^[0-9]{10}$/;
-        // if (!phoneRegex.test(phone)) {
-        //     Alert.alert("Please enter a valid 10-digit mobile number.");
-        //     return;
-        // }
-
-        // if (!password || !password_confirmation) {
-        //     Alert.alert("Please enter Password and Repeat Password.");
-        //     return;
-        // }
-
-        // if (password !== password_confirmation) {
-        //     Alert.alert('Passwords do not match!');
-        //     return;
-        // }
-
+        const startsWithPlusOrZero = phone.startsWith('+') || phone.startsWith('0');
+        const phoneDigitsOnly = phone.replace(/\D/g, '');
+        
+        if (startsWithPlusOrZero || phoneDigitsOnly.length > 10) {
+            return Alert.alert('Alert', 'Please enter your mobile number without country code.');
+        }
         setLoading(true);
 
         try {
             const response = await SignUpUser(createRegester);
-            console.log('response sign up :', response);
             if (response?.success) {
                 navigation.navigate('OTPVerification', { phone, password, password_confirmation });
             } else {
@@ -83,7 +67,7 @@ const SignUp = () => {
                     <Text style={styles.text}>Just a few quick things{"\n"}to get started</Text>
 
                     <SearchBar
-                        placeholder={'Mobile No.'}
+                        placeholder="Mobile No. (without country code)"
                         value={createRegester?.phone}
                         onChangeText={(e) => setRegester({ ...createRegester, phone: e })}
                         keyboardType="number-pad"

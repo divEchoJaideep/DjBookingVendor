@@ -46,7 +46,6 @@ const DashBorad = () => {
       const token = await AsyncStorage.getItem('userToken');
       const header = `Bearer ${token}`;
       const response = await setting(header);
-      console.log('response :',response);
       
       if (response) {
         await AsyncStorage.setItem('Settings', JSON.stringify(response));
@@ -80,7 +79,6 @@ const DashBorad = () => {
     try {
       const AllSettings = await AsyncStorage.getItem('Settings')
       const parsedSettings = JSON.parse(AllSettings);
-      console.log('Parsed Settings:', parsedSettings);
       const today_order = parsedSettings.data.today_order;
       const today_order_amount = parsedSettings.data.today_order_amount;
       const all_order = parsedSettings.data.all_order;

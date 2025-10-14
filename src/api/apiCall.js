@@ -8,26 +8,43 @@ export const commonrequest = async (methods, url, body, header) => {
       ? { Authorization: header, Accept: "application/json" }
       : { "Content-Type": "application/json" },
     data: body,
+    timeout: 15000,
   };
 
   try {
     const response = await axios(config);
     return response.data;
   } catch (error) {
-    // Console me detailed error log
     if (error.response) {
-      // Server responded with a status other than 2xx
       console.log("Error Response:", error.response.data, error.response.status);
-    } else if (error.request) {
-      // Request was made but no response received
-      console.log("Error Request:", error.request);
-    } else {
-      // Something else caused the error
-      console.log("Error Message:", error.message);
+
+      if (error.response.status === 401) {
+        return {
+          error: true,
+          unauthorized: true,   
+          message: error.response.data?.message || "Unauthorized. Please login again.",
+        };
+      }
+
+      return {
+        error: true,
+        status: error.response.status,
+        message: error.response.data?.message || "Server error occurred.",
+      };
     }
-    return { error: true, details: error };
+
+    if (error.message === "Network Error") {
+      return { error: true, message: "Network Error: Please check your internet connection." };
+    }
+
+    if (error.code === "ECONNABORTED") {
+      return { error: true, message: "Request timed out. Please try again." };
+    }
+
+    return { error: true, message: error.message || "Something went wrong." };
   }
 };
+
 
 export const commonFileUpload = async (methods, url, body, header) => {
   let config = {

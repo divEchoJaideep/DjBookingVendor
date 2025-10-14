@@ -37,7 +37,6 @@ export const AuthProvider = ({ children }) => {
 
       const header = `Bearer ${token}`;
       const response = await profile(header);
-
       if (response.success) {
         const user = response.data;
 
@@ -48,7 +47,8 @@ export const AuthProvider = ({ children }) => {
         await fetchSettings(header);
         setIsAuthenticated(true);
       } else {
-        await logout();
+        // await logout();
+        setIsAuthenticated(true)
       }
     } catch (error) {
       //console.error('Auth check failed:', error);

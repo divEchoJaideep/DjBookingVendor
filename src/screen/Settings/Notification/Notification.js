@@ -20,7 +20,6 @@ const Notification = () => {
         current_page: 1,
         last_page: 1,
     });
-    console.log('notificationData :', notificationData);
 
     const [loading, setLoading] = useState(false);
 
@@ -47,7 +46,6 @@ const Notification = () => {
         try {
             setLoading(true);
             const response = await getNotifications(header, page);
-            console.log('response :', response);
 
             if (response?.status) {
                 const { notifications, current_page, last_page, total } = response.data;
@@ -92,10 +90,8 @@ const Notification = () => {
                 getAllNotifications();
             }
         } catch (error) {
-            // console.error("Error deleting notification:", error);
         }
         // Implement delete functionality here
-        // console.log('Delete notification with id:', id);
     }
 
     const renderItem = ({ item }) => (

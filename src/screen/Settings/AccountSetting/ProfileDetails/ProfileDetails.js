@@ -74,7 +74,7 @@ const ProfileDetails = () => {
                 setBackButton(true)
             }
         } catch (error) {
-            Alert.alert('Failed to get user:');
+            // Alert.alert('Failed to get user:');
         }
     };
 
@@ -122,7 +122,7 @@ const ProfileDetails = () => {
 
             throw new Error(response.message)
         } catch (error) {
-            Alert.alert('Error','Something went wrong while uploading.');
+            // Alert.alert('Error','Something went wrong while uploading.');
         }
     }
 
@@ -182,7 +182,7 @@ const ProfileDetails = () => {
                 Alert.alert('Alert', response?.message);
             }
         } catch (error) {
-            Alert.alert('Error', 'Something went wrong');
+            // Alert.alert('Error', 'Something went wrong');
         }
     };
 

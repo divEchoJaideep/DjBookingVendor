@@ -40,7 +40,11 @@ export const Subcategory = async (category_id, header) => {
 };
 
 export const Field = async (data, header) => {
-  return await commonrequest('GET', `${API_BASE_URL}/fields?category_id=${data.category_id}&subcategory_id=${data.subcategory_id}`, "", header);
+  if(data.subcategory_id) {
+    return await commonrequest('GET', `${API_BASE_URL}/fields?category_id=${data.category_id}&subcategory_id=${data.subcategory_id}`, "", header);
+  } else {
+    return await commonrequest('GET', `${API_BASE_URL}/fields?category_id=${data.category_id}`, "", header);
+  }
 };
 
 export const getCities = async (state_id, header) => {

@@ -26,13 +26,10 @@ const OrderProductsDetails = ({ route }) => {
     const screenWidth = Dimensions.get('window').width;
 
     const { product, productType, producttotal, image, originolPrice } = route.params;
-    // console.log('product :', product);
     const bannerMeta = product?.order_metas?.find(meta => meta.meta_key === 'banner');
     const priceMeta = product?.order_metas.find(meta => meta.meta_key === 'price');
     const commissionMeta = product?.order_metas.find(meta => meta.meta_key === 'commission');
     const UserAddress = product?.order_metas?.find(meta => meta.meta_key === 'user_Address');
-
-
     const price = priceMeta ? parseFloat(priceMeta.meta_value) : 0;
     const commissionPercent = commissionMeta ? parseFloat(commissionMeta.meta_value) : 0;
     const commissionAmount = (commissionPercent / 100) * price;
@@ -53,7 +50,6 @@ const OrderProductsDetails = ({ route }) => {
     const [orderCancelDays, setOrderCancelDays] = useState(0);
     const [isCompleteAllowed, setIsCompleteAllowed] = useState(false);
     const [loadingAction, setLoadingAction] = useState(null);
-
 
     const navigation = useNavigation();
 
@@ -109,8 +105,6 @@ const OrderProductsDetails = ({ route }) => {
                 reason: reason,
             };
             const response = await updateOrderStatus(productID, payload, header);
-            console.log('updateOrderStatus response :', response);
-
             if (response?.status) {
                 const updatedOrders = order.map((orderItem) =>
                     orderItem.productID === productID ? { ...orderItem, status: newStatus } : orderItem,
@@ -122,7 +116,7 @@ const OrderProductsDetails = ({ route }) => {
                 Alert.alert('Alert', response?.message || 'Failed to update order status');
             }
         } catch (error) {
-            Alert.alert(`Error updating status to ${newStatus}`, error.message || 'Something went wrong');
+            // Alert.alert(`Error updating status to ${newStatus}`, error.message || 'Something went wrong');
         }
     };
 
@@ -202,7 +196,6 @@ const OrderProductsDetails = ({ route }) => {
             const token = await AsyncStorage.getItem('userToken');
             const header = `Bearer ${token}`;
             const response = await setting(header);
-            // console.log('response :', response);
 
             if (response) {
                 // await AsyncStorage.setItem('Settings', JSON.stringify(response));

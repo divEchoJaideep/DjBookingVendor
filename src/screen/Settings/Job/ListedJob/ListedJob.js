@@ -65,7 +65,6 @@ const ListedJob = ({ searchQuery = '' }) => {
       setPage(customPage + 1);
     } catch (error) {
       Alert.alert('Error', 'Something went wrong');
-      // console.log('Fetch Job Error:', error);
     } finally {
       setLoading(false);
     }

@@ -53,7 +53,9 @@ useEffect(() => {
     const data = chatDoc.data();
     const unreadCounts = { ...data.unreadCounts, [currentUser.vendorId]: 0 };
     transaction.update(chatRef, { unreadCounts });
-  }).catch(err => console.log('Failed to reset unread count:', err));
+  }).catch(err =>
+     console.log('Failed to reset unread count:', err)
+    );
 }, [chatId, currentUser]);
 
 
@@ -159,7 +161,6 @@ useEffect(() => {
       };
       await postReceiverDetails(data, header);
     } catch (err) {
-      console.log('Error sending receiver details:', err);
     }
   };
 

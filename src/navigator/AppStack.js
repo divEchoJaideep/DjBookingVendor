@@ -32,6 +32,8 @@ const AppStack = () => {
         const token = await AsyncStorage.getItem('userToken');
         const header = `Bearer ${token}`;
         const userProfile = await profile(header);
+        console.log('userProfile :',userProfile);
+        
         if (userProfile) {
           if (userProfile.data?.name && userProfile.data?.name.trim() !== '') {
             setInitialRoute('BottomTab');

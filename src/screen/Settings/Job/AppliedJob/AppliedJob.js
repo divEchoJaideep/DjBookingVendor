@@ -26,7 +26,6 @@ const AppliedJob = ({ searchQuery = '' }) => {
     last_page: 1,
     total: 0,
   });
-  console.log('applicantData :', applicantData)
   const navigation = useNavigation();
 
   const containerStyle = isEnabled ? styles.darkContainer : styles.lightContainer;

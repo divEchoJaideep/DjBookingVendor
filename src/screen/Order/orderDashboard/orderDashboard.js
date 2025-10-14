@@ -100,9 +100,7 @@ useFocusEffect(
         end_date: end_date,
       };
 
-      const response = await getOrder(newPage, data, header);
-      console.log('response :',response);
-      
+      const response = await getOrder(newPage, data, header);      
       if (response?.status) {
         if (newPage === 1) {
           setOrders(response?.data?.orders || []);
@@ -124,23 +122,19 @@ useFocusEffect(
 
   const updateOrderStatusHandler = async (productID, newStatus, reason = '') => {
     try {
-      const token = await AsyncStorage.getItem('userToken');
-      console.log('token :', token);
-      
+      const token = await AsyncStorage.getItem('userToken');      
       const header = `Bearer ${token}`;
       const payload = { status: newStatus };
       if (reason) payload.reason = reason;
 
-      const response = await updateOrderStatus(productID, payload, header);
-      console.log('updateOrderStatus response :', response);
-      
+      const response = await updateOrderStatus(productID, payload, header);      
       if (response?.status) {
         fetchOrders(1, appliedDates);
       } else {
         Alert.alert('Failed', response?.message || 'Try again.');
       }
     } catch {
-      Alert.alert('Error', 'Something went wrong.');
+      // Alert.alert('Error', 'Something went wrong.');
     }
   };
 
