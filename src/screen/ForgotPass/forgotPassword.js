@@ -141,7 +141,7 @@ const forgotPassword = () => {
             <Text style={styles.text}>No Worries, we will send you {"\n"}reset instructions</Text>
           ) : (
             <View style={{ width: '100%' }}>
-              <Text style={styles.text}>We have sent a code to your mobile</Text>
+              <Text style={styles.text}>We’ve sent your code to WhatsApp</Text>
               <View style={styles.editButton}>
                 <Text style={styles.mobile}>{mobile}</Text>
                 <TouchableOpacity onPress={() => setIsOtpSent(false)}>

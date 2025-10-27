@@ -212,6 +212,42 @@ const SettingDashboard = () => {
                         />
                     </TouchableOpacity>
 
+                    <TouchableOpacity style={styles.settingWrap} onPress={() => navigation.navigate('Terms')}>
+                        <View style={{ flexDirection: 'row' }}>
+                            <View style={[styles.settingImageWrap, lightGray]}>
+                                <Image
+                                    source={require('../../../Images/term.png')}
+                                    style={styles.settingImage}
+                                    tintColor={isEnabled ? '#fff' : '#121212'}
+                                />
+                            </View>
+                            <Text style={[styles.settingText, textStyle]}>Terms & Conditions</Text>
+                        </View>
+                        <Image
+                            source={require('../../../Images/next.png')}
+                            style={styles.nextImag}
+                            tintColor={isEnabled ? '#fff' : '#121212'}
+                        />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={styles.settingWrap} onPress={() => navigation.navigate('Pricing')}>
+                        <View style={{ flexDirection: 'row' }}>
+                            <View style={[styles.settingImageWrap, lightGray]}>
+                                <Image
+                                    source={require('../../../Images/moneybag.png')}
+                                    style={styles.settingImage}
+                                    tintColor={isEnabled ? '#fff' : '#121212'}
+                                />
+                            </View>
+                            <Text style={[styles.settingText, textStyle]}>Pricing</Text>
+                        </View>
+                        <Image
+                            source={require('../../../Images/next.png')}
+                            style={styles.nextImag}
+                            tintColor={isEnabled ? '#fff' : '#121212'}
+                        />
+                    </TouchableOpacity>
+
                     <TouchableOpacity style={styles.settingWrap} onPress={logoutHandler}>
                         <View style={{ flexDirection: 'row' }}>
                             <View style={[styles.settingImageWrap, lightGray]}>

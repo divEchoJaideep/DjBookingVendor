@@ -2,6 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import { Alert, View } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import NetInfo from '@react-native-community/netinfo';
 
 import BottomTab from './BottomTab';
 import AccountSetting from '../screen/Settings/AccountSetting/AccountSetting';
@@ -19,6 +20,9 @@ import Notification from '../screen/Settings/Notification/Notification';
 import OrderTabs from './OrderTab';
 import OrderMainScreen from '../screen/Order/orderDashboard/OrderMainScreen';
 import Chats from '../screen/Message/Chats/Chats';
+import NetworkError from '../../components/NetworkSkeleton/NetworkSkeleton';
+import Terms from '../screen/Terms&Conditions/Terms';
+import Pricing from '../screen/Pricing/Pricing';
 
 const Stack = createNativeStackNavigator();
 
@@ -26,38 +30,55 @@ const AppStack = () => {
   const { logout } = useContext(AuthContext);
   const [initialRoute, setInitialRoute] = useState(null);
   const [loading, setLoading] = useState(false);
-  useEffect(() => {
-    const checkProfile = async () => {
-      try {
-        const token = await AsyncStorage.getItem('userToken');
-        const header = `Bearer ${token}`;
-        const userProfile = await profile(header);
-        console.log('userProfile :',userProfile);
-        
-        if (userProfile) {
-          if (userProfile.data?.name && userProfile.data?.name.trim() !== '') {
-            setInitialRoute('BottomTab');
-          } else {
-            setInitialRoute('AccountSetting');
-          }
-        } else {
-          Alert.alert('Error', 'Failed to fetch profile');
-          setInitialRoute('Login');
-        }
-      } catch (error) {
-       // console.error(error);
-        Alert.alert('Error', 'Something went wrong');
-        setInitialRoute('Login');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const [networkError, setNetworkError] = useState(false);
 
-    checkProfile();
+
+  const determineInitialRoute = async () => {
+    setNetworkError(false);
+    setInitialRoute(null);
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      const header = `Bearer ${token}`;
+      const userProfile = await profile(header);
+      console.log('userProfile :', userProfile);
+
+      if (userProfile.data?.name && userProfile.data?.name.trim() !== '') {
+        setInitialRoute('BottomTab');
+      } else {
+        setInitialRoute('AccountSetting');
+      }
+
+
+    } catch (error) {
+      // console.error(error);
+      setNetworkError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener(state => {
+      if (!state.isConnected) {
+        setNetworkError(true);
+      } else {
+        if (networkError) {
+          determineInitialRoute();
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [networkError]);
+
+  useEffect(() => {
+    determineInitialRoute();
   }, []);
 
   if (loading || initialRoute === null) {
     return <ActiveIndicator fullScreen />;
+  }
+  if (networkError) {
+    return <NetworkError onRetry={determineInitialRoute} />;
   }
 
   return (
@@ -68,11 +89,13 @@ const AppStack = () => {
       <Stack.Screen name="product" component={product} />
       <Stack.Screen name="orderProductsDetails" component={orderProductsDetails} />
       <Stack.Screen name='ProductsDashboard' component={ProductsDashboard} />
-       <Stack.Screen name="Chats" component={Chats} />
-      <Stack.Screen name='OrderMainScreen' component={OrderMainScreen}  />
+      <Stack.Screen name="Chats" component={Chats} />
+      <Stack.Screen name='OrderMainScreen' component={OrderMainScreen} />
       <Stack.Screen name="ProductDetails" component={ProductDetails} />
       <Stack.Screen name="Job" component={Job} />
       <Stack.Screen name='Notification' component={Notification} />
+      <Stack.Screen name='Terms' component={Terms} />
+      <Stack.Screen name='Pricing' component={Pricing} />
     </Stack.Navigator>
   );
 };

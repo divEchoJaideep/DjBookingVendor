@@ -134,13 +134,17 @@ const styles = StyleSheet.create({
     // backgroundColor:'red',
     width:windowWidth/2 + 20
   },
+  lableWrap:{
+    maxWidth:'30%'
+  },
   lable: {
     fontWeight: 500,
 
   },
   textwrap: {
+    marginRight:23,
     borderWidth: 0,
-    // width: windowWidth / 2 - 20
+     maxWidth:'60%'
   },
   billTextWrap: {
     flexDirection: "row",

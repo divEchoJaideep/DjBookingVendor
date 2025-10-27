@@ -204,6 +204,7 @@ useEffect(() => {
             containerStyle={{
               backgroundColor: isEnabled ? '#1C1C1E' : '#FFF',
               borderTopColor: isEnabled ? '#333' : '#EEE',
+              marginVertical:10
             }}
           />
         )}

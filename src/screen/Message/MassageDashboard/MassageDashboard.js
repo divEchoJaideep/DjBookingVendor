@@ -97,8 +97,8 @@ const MassageDashboard = () => {
         const formattedTime = timestamp ? timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
 
         return (
-            <TouchableOpacity key={item.key} onPress={() => handleUserPress(user, item.key)}>
-                <View style={[styles.messageContainer, grayContainer]}>
+                <View style={[styles.messageContainer]}>
+            <TouchableOpacity key={item.key} onPress={() => handleUserPress(user, item.key)} style={[styles.messageContainerWrap,grayContainer]}>
                     {/* Red border for unread */}
                     {/* <View
                         style={{
@@ -122,8 +122,8 @@ const MassageDashboard = () => {
                             <Text style={[styles.timestamp, { color: item.unreadCount > 0 ? 'red' : isEnabled ? '#fff' : 'gray' }]}>{formattedTime}</Text>
                         </View>
                     </View>
-                </View>
             </TouchableOpacity>
+                </View>
         );
     };
 

@@ -69,19 +69,27 @@ const styles = StyleSheet.create({
    
     color:'#fff'
   },
-  messageContainer: {
-    borderWidth:1,
-    borderColor:Colors.productDashboardBorderColor,
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+   messageContainerWrap: {
+      width: '98%',
+       flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: "#fff",
-    marginVertical: 10,
-    borderRadius: 10,
+    alignItems: 'center',
+    paddingHorizontal: 14,
+     paddingVertical: 12,
+    backgroundColor: 'transparent',
+    borderRadius: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.5,
+    elevation: 4,
+    marginBottom: 4,
+  },
 
+  // 🔹 Inner card (actual content)
+  messageContainer: {
+    alignItems:"center",
+    marginTop:10,
   },
   avatar: {
     width: 40,

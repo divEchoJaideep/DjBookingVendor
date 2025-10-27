@@ -110,7 +110,7 @@ const otpVerification = ({ route }) => {
         <View style={styles.container}>
           <View>
             <Text style={styles.title}>Welcome</Text>
-            <Text style={styles.text}>We have sent an OTP to your mobile</Text>
+            <Text style={styles.text}>We’ve sent your code to WhatsApp</Text>
             <View style={styles.editButton}>
               <Text style={styles.mobile}>{phone}</Text>
               <TouchableOpacity onPress={() => navigation.goBack()}>

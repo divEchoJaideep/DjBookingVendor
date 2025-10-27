@@ -1,5 +1,6 @@
 
 export const Colors = {
+  them :'#743bff', // Purple
   textColor: 'white',    // white
   secondary: '#2ecc71',  // Green
   background: '#f1effc', // Background

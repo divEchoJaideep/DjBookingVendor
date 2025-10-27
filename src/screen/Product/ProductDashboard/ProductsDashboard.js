@@ -20,6 +20,8 @@ import InvoiceTextInput from '../../../../components/invoiceTextInput';
 import { getProducts, setting, deleteProduct, boostOrder, boostedAmount } from '../../../api/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Container from '../../../../components/Container';
+import RazorpayCheckout from 'react-native-razorpay';
+
 
 const ProductsDashboard = ({ route }) => {
 
@@ -184,6 +186,59 @@ const ProductsDashboard = ({ route }) => {
     } catch (error) { }
   };
 
+
+  //   const handlePayment = async (packageItem) => {
+  //   try {
+  //     const paymentData = await makeRazorpayPayment(packageItem, RAZORPAY_TEST_KEY, {
+  //       email: 'gaurav.kumar@example.com',
+  //       contact: '9191919191',
+  //       name: 'Gaurav Kumar'
+  //     });
+
+  //     console.log('Payment Success:', paymentData);
+  //     // call your API or update DB here
+
+  //   } catch (error) {
+  //     console.log('Payment failed:', error);
+  //   }
+  // };
+
+  // const handleBoost = async () => {
+  //   try {
+  //     if (!selectedProduct?.id) throw new Error("No product selected.");
+  //     if (!boostExpiry) throw new Error("Boost expiry date is not set.");
+  //     if (!boostAmount || isNaN(boostAmount) || Number(boostAmount) <= 0)
+  //       throw new Error("Boost amount must be a valid number greater than 0.");
+
+  //     setBoostLoading(true);
+
+  //     const token = await AsyncStorage.getItem('userToken');
+  //     const header = `Bearer ${token}`;
+  //     const data = {
+  //       listing_id: selectedProduct.id,
+  //       amount: Number(boostAmount),
+  //       expire_date: boostExpiry,
+  //     };
+  //     const result = await boostOrder(data, header);
+
+  //     if (result?.success) {
+  //       Alert.alert("Success", result.message);
+  //       setBoostAmount('');
+  //       setSelectedProduct(null);
+  //       resetAndFetchProducts();
+  //       setMaxBoostPrice(0);
+  //     } else {
+  //       throw new Error(result.message || "Something went wrong with the boost operation.");
+  //     }
+  //   } catch (error) {
+  //     // Alert.alert("Alert", error.message || "Something went wrong while boosting the product.");
+  //   } finally {
+  //     setBoostLoading(false);
+  //     setBoostPopupVisible(false);
+  //   }
+  // };
+  const RAZORPAY_TEST_KEY = 'rzp_test_ROBbgX7aCZ2Tjo';
+
   const handleBoost = async () => {
     try {
       if (!selectedProduct?.id) throw new Error("No product selected.");
@@ -193,29 +248,63 @@ const ProductsDashboard = ({ route }) => {
 
       setBoostLoading(true);
 
-      const token = await AsyncStorage.getItem('userToken');
-      const header = `Bearer ${token}`;
-      const data = {
-        listing_id: selectedProduct.id,
-        amount: Number(boostAmount),
-        expire_date: boostExpiry,
+      var options = {
+        description: `Boost Product: ${selectedProduct.title}`,
+        image: 'https://tisabooking.com/wp-content/uploads/2025/08/tisabooking.png',
+        currency: 'INR',
+        key: RAZORPAY_TEST_KEY,
+        amount: Number(boostAmount) * 100,
+        name: 'TisaBooking',
+        prefill: {
+          email: '',
+          contact: '',
+          name: ''
+        },
+        theme: { color: '#007bff' },
+        method: {
+          card: false,
+          netbanking: true,
+          upi: true,
+          wallet: false,
+          emi: false,
+          paylater: false
+        }
       };
-      const result = await boostOrder(data, header);
 
-      if (result?.success) {
-        Alert.alert("Success", result.message);
-        setBoostAmount('');
-        setSelectedProduct(null);
-        resetAndFetchProducts();
-        setMaxBoostPrice(0);
-      } else {
-        throw new Error(result.message || "Something went wrong with the boost operation.");
-      }
+      RazorpayCheckout.open(options)
+        .then(async (paymentData) => {
+          console.log('Payment Success:', paymentData);
+          const token = await AsyncStorage.getItem('userToken');
+          const header = `Bearer ${token}`;
+          const data = {
+            listing_id: selectedProduct.id,
+            amount: Number(boostAmount),
+            expire_date: boostExpiry,
+            payment_id: paymentData.razorpay_payment_id,
+          };
+
+          const result = await boostOrder(data, header);
+
+          if (result?.success) {
+            Alert.alert("Success", result.message);
+            setBoostAmount('');
+            setSelectedProduct(null);
+            resetAndFetchProducts();
+            setMaxBoostPrice(0);
+          } else {
+            Alert.alert("Error", result.message || "Boost failed after payment.");
+          }
+
+        })
+        .catch((error) => {
+          console.log('Payment Failed:', error);
+          Alert.alert("Payment Failed", "Transaction was not successful.");
+        });
+
     } catch (error) {
-      // Alert.alert("Alert", error.message || "Something went wrong while boosting the product.");
+      Alert.alert("Error", error.message);
     } finally {
       setBoostLoading(false);
-      setBoostPopupVisible(false);
     }
   };
 
@@ -371,17 +460,31 @@ const ProductsDashboard = ({ route }) => {
               <View style={styles.modalButtonRow}>
                 <TouchableOpacity
                   onPress={handleBoost}
-                  disabled={!boostAmount.trim() || boostLoading}
+                  disabled={
+                    boostLoading ||
+                    !boostAmount.trim() ||
+                    isNaN(boostAmount) ||
+                    Number(boostAmount) <= 0
+                  }
                   style={[
                     styles.modalButton,
                     styles.modalButtonBoost,
-                    { opacity: boostAmount.trim() && !boostLoading ? 1 : 0.5 },
+                    {
+                      opacity:
+                        boostLoading ||
+                          !boostAmount.trim() ||
+                          isNaN(boostAmount) ||
+                          Number(boostAmount) <= 0
+                          ? 0.5
+                          : 1,
+                    },
                   ]}
                 >
+
                   {boostLoading ? (
                     <ActivityIndicator color="#fff" size="small" />
                   ) : (
-                    <Text style={styles.modalButtonText}>Boost</Text>
+                    <Text style={styles.modalButtonText}>Pay Now for Boost</Text>
                   )}
                 </TouchableOpacity>
 

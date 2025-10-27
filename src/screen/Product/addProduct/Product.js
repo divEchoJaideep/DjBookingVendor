@@ -536,6 +536,7 @@ const Product = () => {
 
     const token = await AsyncStorage.getItem('userToken');
     const header = `Bearer ${token}`;
+console.log('productData :',productData);
 
     try {
         setOrderLoading(true); 
@@ -552,7 +553,8 @@ const Product = () => {
             Alert.alert('Success', response?.message, [
                 {
                     text: 'OK',
-                    onPress: () => navigation.replace('ProductsDashboard'),
+                    onPress: () => navigation.navigate('BottomTab', { screen: 'ProductsDashboard' })
+,
                 },
             ]);
         } else if (response?.errors) {

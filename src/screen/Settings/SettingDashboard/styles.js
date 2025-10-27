@@ -102,7 +102,8 @@ const styles = StyleSheet.create({
         fontWeight: 500,
         fontSize: 15,
         margin: "auto"
-    }, lightContainer: {
+    },
+     lightContainer: {
         backgroundColor: Colors.lightContainer
     },
     darkContainer: {

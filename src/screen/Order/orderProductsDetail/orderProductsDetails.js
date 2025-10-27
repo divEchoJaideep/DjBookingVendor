@@ -311,10 +311,12 @@ const OrderProductsDetails = ({ route }) => {
                                     }
 
                                     return (
-                                        <View style={styles.billTextWrap}>
-                                            <Text style={[styles.lable, textStyle]}>{formattedKey}</Text>
+                                        <View style={[styles.billTextWrap,]}>
+                                            <View style={styles.lableWrap}>
+                                            <Text style={[styles.lable, textStyle,]}>{formattedKey}</Text>
+                                            </View>
                                             <View style={styles.textwrap}>
-                                                <Text style={[styles.billText, textStyle]}>{displayValue}</Text>
+                                                <Text style={[styles.billText, textStyle,]}>{displayValue}</Text>
                                             </View>
                                         </View>
                                     );

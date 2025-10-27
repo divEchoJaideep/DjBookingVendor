@@ -51,14 +51,14 @@ console.log('isAuthenticated :', isAuthenticated);
     // }
 
     // 🔹 Network error / timeout → sirf alert, no logout
-    if (response?.error && !response?.unauthorized) {
-      Alert.alert('Network Error', response.message || 'Please check your internet connection.');
-      return;
-    }
+    // if (response?.error && !response?.unauthorized) {
+    //   Alert.alert('Network Error', response.message || 'Please check your internet connection.');
+    //   return;
+    // }
 
   } catch (error) {
     // Catch unexpected JS errors → alert only
-    Alert.alert('Error', error.message || 'Something went wrong.');
+    // Alert.alert('Error', error.message || 'Something went wrong.');
   }
 };
 

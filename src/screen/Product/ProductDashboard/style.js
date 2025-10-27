@@ -364,10 +364,16 @@ const styles = StyleSheet.create({
     textAlign: 'center'
   },
   modalButtonRow: {
-    flexDirection: 'row',
+    // flexDirection: 'row',
+    // backgroundColor: 'red',
+    alignSelf: 'center',
+    width: '100%',
     gap: 15
   },
   modalButton: {
+    width:'100%',
+    alignSelf: 'center',
+    alignItems: 'center',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5

@@ -1,11 +1,11 @@
 import React, { useState } from "react";
-import { Text, View, FlatList, StyleSheet, Image, TouchableOpacity, Alert } from "react-native";
+import { Text, View, FlatList, StyleSheet, Image, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
 import TopHeader from "../../../../components/header/topHeader";
 import styles from "./styles";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useTheme } from "../../../ThemeContext/ThemeContext";
 import Container from "../../../../components/Container";
-import { getNotifications, markAllNotificationsAsRead, notificationDelete } from "../../../api/api";
+import { getNotifications, markAllNotificationsAsRead, markNotificationAsRead, notificationDelete } from "../../../api/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
@@ -78,6 +78,20 @@ const Notification = () => {
         }
     }
 
+     const handleReadNotification = async(id) => {
+        try {
+            const token = await AsyncStorage.getItem('userToken');
+        const header = `Bearer ${token}`;
+          const response = await markNotificationAsRead(id ,header);
+          console.log('response :',response);
+          
+          if (response?.status) {
+            getAllNotifications();
+          }          
+        } catch (error) {
+            
+        }
+    }
 
     const handleDeleteNotification = async (id) => {
 
@@ -95,7 +109,7 @@ const Notification = () => {
     }
 
     const renderItem = ({ item }) => (
-        <View style={[styles.notificationCard, darkGrayContainer]}>
+        <TouchableOpacity style={[styles.notificationCard, darkGrayContainer]} onPress={() => handleReadNotification(item.id)}>
             <TouchableOpacity onPress={() => handleDeleteNotification(item.id)} style={styles.closeButton}>
                 <Text>X</Text>
             </TouchableOpacity>
@@ -115,7 +129,7 @@ const Notification = () => {
                 </View>
                 <Text style={[styles.message, { color: isEnabled ? '#ccc' : '#555' }]} numberOfLines={2} multiline >{item.data.body}</Text>
             </View>
-        </View>
+        </TouchableOpacity>
     );
 
     return (
@@ -131,6 +145,11 @@ const Notification = () => {
                     stylesText={{ color: isEnabled ? "#fff" : "#121212" }}
                     tintColorLeft={isEnabled ? '#fff' : '#121212'}
                 />
+                {loading ? (
+                    <ActivityIndicator size="small" color="#rgb(116 58 255)" style={{ marginTop: 10 }} />
+                ) : (
+                    
+                
                 <FlatList
                     data={notificationData.notifications}
                     keyExtractor={(item, index) => item.id?.toString() || index.toString()}
@@ -147,7 +166,7 @@ const Notification = () => {
                         </Text>
                     }
                 />
-
+                )}
             </View>
         </Container>
     );

@@ -141,8 +141,8 @@ export const getNotifications = async (header) => {
     return await commonrequest('GET', `${API_BASE_URL}/notifications`, '', header);
 };
 
-export const markNotificationAsRead = async (id,data, header) => {
-    return await commonrequest('POST', `${API_BASE_URL}/notifications/mark-as-read/${id}`, data, header);
+export const markNotificationAsRead = async (id, header) => {
+    return await commonrequest('POST', `${API_BASE_URL}/notifications/mark-as-read/${id}`, '', header);
 };
 
 export const markAllNotificationsAsRead = async (header) => {
