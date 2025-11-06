@@ -26,45 +26,7 @@ const MainNavigator = () => {
   const [currentRoute, setCurrentRoute] = useState();
 console.log('isAuthenticated :', isAuthenticated);
 
-  useEffect(() => {
-    const checkUserStatus = async () => {
-  try {
-    const token = await AsyncStorage.getItem('userToken');
-    if (!token) return;
-
-    const header = `Bearer ${token}`;
-    const response = await profile(header);
-    console.log('response :', response);
-
-    // 🔹 Unauthorized (401)
-    if (response?.unauthorized) {
-      Alert.alert('Logged Out', 'Your account is logged into another device');
-      await logout();
-      return;
-    }
-
-    // 🔹 Logged in on another device
-    // if (response?.success === false) {
-    //   Alert.alert('Logged Out', 'Your account is logged into another device.');
-    //   await logout();
-    //   return;
-    // }
-
-    // 🔹 Network error / timeout → sirf alert, no logout
-    // if (response?.error && !response?.unauthorized) {
-    //   Alert.alert('Network Error', response.message || 'Please check your internet connection.');
-    //   return;
-    // }
-
-  } catch (error) {
-    // Catch unexpected JS errors → alert only
-    // Alert.alert('Error', error.message || 'Something went wrong.');
-  }
-};
-
-    checkUserStatus();
-  }, [currentRoute]);
-
+  
   if (isAuthenticated === null) return <ActiveIndicator fullScreen />;
 
   useEffect(() => {

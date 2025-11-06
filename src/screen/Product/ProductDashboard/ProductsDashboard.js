@@ -21,6 +21,7 @@ import { getProducts, setting, deleteProduct, boostOrder, boostedAmount } from '
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Container from '../../../../components/Container';
 import RazorpayCheckout from 'react-native-razorpay';
+import { initPhonePeSDK, phonePeStartTransaction } from '../../../utlis/phonepePayment';
 
 
 const ProductsDashboard = ({ route }) => {
@@ -203,42 +204,6 @@ const ProductsDashboard = ({ route }) => {
   //   }
   // };
 
-  // const handleBoost = async () => {
-  //   try {
-  //     if (!selectedProduct?.id) throw new Error("No product selected.");
-  //     if (!boostExpiry) throw new Error("Boost expiry date is not set.");
-  //     if (!boostAmount || isNaN(boostAmount) || Number(boostAmount) <= 0)
-  //       throw new Error("Boost amount must be a valid number greater than 0.");
-
-  //     setBoostLoading(true);
-
-  //     const token = await AsyncStorage.getItem('userToken');
-  //     const header = `Bearer ${token}`;
-  //     const data = {
-  //       listing_id: selectedProduct.id,
-  //       amount: Number(boostAmount),
-  //       expire_date: boostExpiry,
-  //     };
-  //     const result = await boostOrder(data, header);
-
-  //     if (result?.success) {
-  //       Alert.alert("Success", result.message);
-  //       setBoostAmount('');
-  //       setSelectedProduct(null);
-  //       resetAndFetchProducts();
-  //       setMaxBoostPrice(0);
-  //     } else {
-  //       throw new Error(result.message || "Something went wrong with the boost operation.");
-  //     }
-  //   } catch (error) {
-  //     // Alert.alert("Alert", error.message || "Something went wrong while boosting the product.");
-  //   } finally {
-  //     setBoostLoading(false);
-  //     setBoostPopupVisible(false);
-  //   }
-  // };
-  const RAZORPAY_TEST_KEY = 'rzp_test_ROBbgX7aCZ2Tjo';
-
   const handleBoost = async () => {
     try {
       if (!selectedProduct?.id) throw new Error("No product selected.");
@@ -248,65 +213,121 @@ const ProductsDashboard = ({ route }) => {
 
       setBoostLoading(true);
 
-      var options = {
-        description: `Boost Product: ${selectedProduct.title}`,
-        image: 'https://tisabooking.com/wp-content/uploads/2025/08/tisabooking.png',
-        currency: 'INR',
-        key: RAZORPAY_TEST_KEY,
-        amount: Number(boostAmount) * 100,
-        name: 'TisaBooking',
-        prefill: {
-          email: '',
-          contact: '',
-          name: ''
-        },
-        theme: { color: '#007bff' },
-        method: {
-          card: false,
-          netbanking: true,
-          upi: true,
-          wallet: false,
-          emi: false,
-          paylater: false
-        }
+      const generateTransactionId = () => {
+        const timePart = Date.now();
+        const randomPart = Math.floor(1000 + Math.random() * 9000);
+        return `T${timePart}${randomPart}`;
       };
 
-      RazorpayCheckout.open(options)
-        .then(async (paymentData) => {
-          console.log('Payment Success:', paymentData);
-          const token = await AsyncStorage.getItem('userToken');
-          const header = `Bearer ${token}`;
-          const data = {
-            listing_id: selectedProduct.id,
-            amount: Number(boostAmount),
-            expire_date: boostExpiry,
-            payment_id: paymentData.razorpay_payment_id,
-          };
+      const transactionId = generateTransactionId();
+      const amount = Number(boostAmount);
+      const mobileNumber = "9999999999"; // for testing / sandbox mode
 
-          const result = await boostOrder(data, header);
+      console.log("🔄 Initializing PhonePe SDK...");
+      const sdkInit = await initPhonePeSDK();
 
-          if (result?.success) {
-            Alert.alert("Success", result.message);
-            setBoostAmount('');
-            setSelectedProduct(null);
-            resetAndFetchProducts();
-            setMaxBoostPrice(0);
-          } else {
-            Alert.alert("Error", result.message || "Boost failed after payment.");
-          }
+      const paymentResult = await phonePeStartTransaction({
+        amount,
+        mobileNumber,
+        transactionId,
+      });
+      if (paymentResult?.data?.status === "SUCCESS") {
+        const token = await AsyncStorage.getItem('userToken');
+        const header = `Bearer ${token}`;
+        const data = {
+          listing_id: selectedProduct.id,
+          amount: Number(boostAmount),
+          expire_date: boostExpiry,
+        };
+        const result = await boostOrder(data, header);
 
-        })
-        .catch((error) => {
-          console.log('Payment Failed:', error);
-          Alert.alert("Payment Failed", "Transaction was not successful.");
-        });
+        if (result?.success) {
+          Alert.alert("Success", result.message);
+          setBoostAmount('');
+          setSelectedProduct(null);
+          resetAndFetchProducts();
+          setMaxBoostPrice(0);
+        } else {
+          throw new Error(result.message || "Something went wrong with the boost operation.");
+        }
+      }
+
 
     } catch (error) {
-      Alert.alert("Error", error.message);
+      // Alert.alert("Alert", error.message || "Something went wrong while boosting the product.");
     } finally {
       setBoostLoading(false);
+      setBoostPopupVisible(false);
     }
   };
+  const RAZORPAY_TEST_KEY = 'rzp_test_ROBbgX7aCZ2Tjo';
+  // const handleBoost = async () => {
+  //   try {
+  //     if (!selectedProduct?.id) throw new Error("No product selected.");
+  //     if (!boostExpiry) throw new Error("Boost expiry date is not set.");
+  //     if (!boostAmount || isNaN(boostAmount) || Number(boostAmount) <= 0)
+  //       throw new Error("Boost amount must be valid.");
+
+  //     setBoostLoading(true);
+
+  //     // 🔢 Generate a unique transaction ID
+  //     const generateTransactionId = () => {
+  //       const timePart = Date.now();
+  //       const randomPart = Math.floor(1000 + Math.random() * 9000);
+  //       return `T${timePart}${randomPart}`;
+  //     };
+
+  //     const transactionId = generateTransactionId();
+  //     const amount = Number(boostAmount);
+  //     const mobileNumber = "9999999999"; // for testing / sandbox mode
+
+  //     console.log("🔄 Initializing PhonePe SDK...");
+  //     const sdkInit = await initPhonePeSDK();
+
+  //     if (!sdkInit?.success) {
+  //       console.log("❌ SDK initialization failed:", sdkInit?.message);
+  //       throw new Error("PhonePe SDK initialization failed");
+  //     }
+
+  //     console.log("✅ SDK Initialized Successfully");
+
+  //     // 🚀 Start the PhonePe transaction
+  //     console.log("📤 Starting PhonePe transaction...");
+  //     const paymentResult = await phonePeStartTransaction({
+  //       amount,
+  //       mobileNumber,
+  //       transactionId,
+  //     });
+
+  //     console.log("📥 PhonePe Payment Result:", paymentResult);
+
+  //     // ✅ Handle success
+  //     if (
+  //       paymentResult?.success === true ||
+  //       paymentResult?.data?.status === "SUCCESS" ||
+  //       paymentResult?.data?.state === "COMPLETED"
+  //     ) {
+  //       Alert.alert("✅ Success", "Payment completed successfully!");
+  //       await resetAndFetchProducts();
+  //     } 
+  //     // ❌ Handle failure
+  //     else {
+  //       const msg =
+  //         paymentResult?.data?.message ||
+  //         paymentResult?.message ||
+  //         "Transaction unsuccessful.";
+  //       Alert.alert("❌ Payment Failed", msg);
+  //     }
+
+  //   } catch (error) {
+  //     console.log("❌ Error in handleBoost:", error);
+  //     Alert.alert("Error", error?.message || "Something went wrong.");
+  //   } finally {
+  //     setBoostLoading(false);
+  //     setBoostPopupVisible(false);
+  //   }
+  // };
+
 
   const renderItem = ({ item }) => {
     const price = item.metas?.find(meta => meta.meta_key === 'price')?.meta_value ?? 'N/A';

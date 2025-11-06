@@ -1,4 +1,5 @@
 import axios from "axios";
+import { globalLogout } from "../utlis/globalLogout";
 
 export const commonrequest = async (methods, url, body, header) => {
   let config = {
@@ -19,11 +20,14 @@ export const commonrequest = async (methods, url, body, header) => {
       console.log("Error Response:", error.response.data, error.response.status);
 
       if (error.response.status === 401) {
+              await globalLogout();
+
         return {
           error: true,
           unauthorized: true,   
           message: error.response.data?.message || "Unauthorized. Please login again.",
         };
+        
       }
 
       return {

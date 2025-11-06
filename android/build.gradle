@@ -17,6 +17,16 @@ buildscript {
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
         classpath 'com.google.gms:google-services:4.4.3'
     }
+    
+}
+
+allprojects { 
+   repositories { 
+      google() 
+      maven { 
+         url "https://phonepe.mycloudrepo.io/public/repositories/phonepe-intentsdk-android" 
+      } 
+   } 
 }
 
 apply plugin: "com.facebook.react.rootproject"

@@ -2,6 +2,7 @@ import React, { createContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { profile, signpage, setting } from '../api/api';
 import { Alert } from 'react-native';
+import { setLogoutCallback } from '../utlis/globalLogout';
 
 export const AuthContext = createContext();
 
@@ -12,6 +13,10 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     checkAuthStatus();
   }, []);
+
+  useEffect(() => {
+  setLogoutCallback(logout); 
+}, []);
 
   const logout = async () => {
     await AsyncStorage.clear();
