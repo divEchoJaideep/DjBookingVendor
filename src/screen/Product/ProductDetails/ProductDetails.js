@@ -10,6 +10,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors } from '../../../../components/colors/colors';
 import Container from '../../../../components/Container';
 import Content from '../../../../components/Content';
+import handleShare from '../../../../components/ShareProduct/ShareProduct';
 
 
 const ProductDetails = () => {
@@ -86,36 +87,36 @@ const ProductDetails = () => {
         }
     }, [product]);
 
-    const handleShare = async () => {
-        try {
-            const productLink = `https://www.DjBookingUser.com/product/${product.id}`;
+    // const handleShare = async () => {
+    //     try {
+    //         const productLink = `https://www.DjBookingUser.com/product/${product.id}`;
 
-            const name = product.title || 'N/A';
-            const productPrice = price || 'N/A';
-            const location = [
-                product?.locality?.locality,
-                product?.city?.city,
-                product?.state?.name,
-                product?.country || '',
-                product?.postal || ''
-            ].filter(Boolean).join(', ');
+    //         const name = product.title || 'N/A';
+    //         const productPrice = price || 'N/A';
+    //         const location = [
+    //             product?.locality?.locality,
+    //             product?.city?.city,
+    //             product?.state?.name,
+    //             product?.country || '',
+    //             product?.postal || ''
+    //         ].filter(Boolean).join(', ');
 
-            const message = `Check out this amazing product: ${name}\n\n` +
-                `Price: ₹${productPrice}\n\n` +
-                `Location: ${location || 'N/A'}\n\n` +
-                `Click here to view the product: ${productLink}\n\n` +
-                `Thank you;`;
+    //         const message = `Check out this amazing product: ${name}\n\n` +
+    //             `Price: ₹${productPrice}\n\n` +
+    //             `Location: ${location || 'N/A'}\n\n` +
+    //             `Click here to view the product: ${productLink}\n\n` +
+    //             `Thank you;`;
 
-            const result = await Share.share({ message });
+    //         const result = await Share.share({ message });
 
-            if (result.action === Share.sharedAction) {
-                if (result.activityType) {
-                }
-            }
-        } catch (error) {
-            Alert.alert("Error sharing the product.");
-        }
-    };
+    //         if (result.action === Share.sharedAction) {
+    //             if (result.activityType) {
+    //             }
+    //         }
+    //     } catch (error) {
+    //         Alert.alert("Error sharing the product.");
+    //     }
+    // };
 
     const onScrollEnd = (event) => {
         const contentOffsetX = event.nativeEvent.contentOffset.x;
@@ -193,7 +194,7 @@ const ProductDetails = () => {
                         {/* <View style={{ flexDirection: "row", marginVertical: 10, gap: 10 }}></View> */}
 
                         <View style={{ flexDirection: "row", justifyContent: "space-between", marginVertical: 10 }}>
-                            <TouchableOpacity style={[styles.middleBodyButton, grayContainer, { borderWidth: isEnabled ? 1 : 0 }]} onPress={handleShare}>
+                            <TouchableOpacity style={[styles.middleBodyButton, grayContainer, { borderWidth: isEnabled ? 1 : 0 }]} onPress={() => handleShare(productDetails)}>
                                 <Image source={require('../../../Images/share.png')} style={styles.middleBodyButtonImag} tintColor={'#fff'} />
                                 <Text style={[styles.buttonshare]}>Share</Text>
                             </TouchableOpacity>

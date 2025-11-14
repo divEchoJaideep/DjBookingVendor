@@ -37,11 +37,13 @@ useEffect(() => {
   const containerStyle = isEnabled ? styles.darkContainer : styles.backgroundContainer;
   const textStyle = isEnabled ? styles.darkText : styles.lightText;
 
-  const filteredData = useMemo(() => {
-    return data.filter(item =>
-      item?.label?.toLowerCase().includes(search.toLowerCase())
-    );
-  }, [search, data]);
+ const filteredData = useMemo(() => {
+  const query = search.trim().toLowerCase();   
+  return data.filter(item =>
+    item?.label?.toLowerCase().includes(query)
+  );
+}, [search, data]);
+
 
   const renderItem = ({ item }) => (
     <TouchableOpacity

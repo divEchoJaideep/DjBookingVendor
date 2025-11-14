@@ -45,7 +45,8 @@ const ProductsDashboard = ({ route }) => {
   const [boostAmount, setBoostAmount] = useState('');
   const [maxBoosstPrice, setMaxBoostPrice] = useState(0);
   const [boostLoading, setBoostLoading] = useState(false);
-
+  const [profile, setProfile] = useState({});
+  console.log('profile :', profile);
 
   const navigation = useNavigation();
   const grayContainer = isEnabled ? styles.darkgray : styles.lightContainer;
@@ -144,25 +145,35 @@ const ProductsDashboard = ({ route }) => {
     );
   };
 
+
+  const fetchBoostAmount = async () => {
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      const header = `Bearer ${token}`;
+      const result = await boostedAmount(selectedProduct.locality_id, selectedProduct.category_id, header);
+      setMaxBoostPrice(result?.data?.maximum_boosted_amount || 0);
+    } catch (error) {
+      //  console.error('Error fetching boosted amount:', error);
+
+    }
+  };
+
   useEffect(() => {
     if (!selectedProduct?.locality_id) return;
-
-    const fetchBoostAmount = async () => {
-      try {
-        const token = await AsyncStorage.getItem('userToken');
-        const header = `Bearer ${token}`;
-        const result = await boostedAmount(selectedProduct.locality_id, selectedProduct.category_id, header);
-        setMaxBoostPrice(result?.data?.maximum_boosted_amount || 0);
-      } catch (error) {
-        //  console.error('Error fetching boosted amount:', error);
-
-      }
-    };
 
     fetchBoostAmount();
   }, [selectedProduct]);
 
-
+  const getStoredUser = async () => {
+    try {
+      const user = await AsyncStorage.getItem('user');
+      if (user) {
+        setProfile(JSON.parse(user));
+      }
+    } catch (error) {
+      // Alert.alert('Failed to get user:');
+    }
+  };
   const handleBoostClick = (selectedProduct) => {
     try {
 
@@ -170,6 +181,9 @@ const ProductsDashboard = ({ route }) => {
         Alert.alert("Notice", "This product is already boosted.");
         return;
       }
+
+      getStoredUser();
+
 
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -181,6 +195,7 @@ const ProductsDashboard = ({ route }) => {
       const formattedExpiry = expiry.toISOString().split('T')[0];
       const expire_date = formattedExpiry;
       setSelectedProduct(selectedProduct);
+      fetchBoostAmount()
       setBoostDate(today);
       setBoostExpiry(expire_date);
       setBoostPopupVisible(true);
@@ -188,21 +203,19 @@ const ProductsDashboard = ({ route }) => {
   };
 
 
-  //   const handlePayment = async (packageItem) => {
-  //   try {
-  //     const paymentData = await makeRazorpayPayment(packageItem, RAZORPAY_TEST_KEY, {
-  //       email: 'gaurav.kumar@example.com',
-  //       contact: '9191919191',
-  //       name: 'Gaurav Kumar'
-  //     });
+  const handlePayment = async (packageItem) => {
+    try {
+      const paymentData = await makeRazorpayPayment(packageItem, RAZORPAY_TEST_KEY, {
+        email: 'gaurav.kumar@example.com',
+        contact: '9191919191',
+        name: 'Gaurav Kumar'
+      });
+      // call your API or update DB here
 
-  //     console.log('Payment Success:', paymentData);
-  //     // call your API or update DB here
-
-  //   } catch (error) {
-  //     console.log('Payment failed:', error);
-  //   }
-  // };
+    } catch (error) {
+      // console.log('Payment failed:', error);
+    }
+  };
 
   const handleBoost = async () => {
     try {
@@ -221,9 +234,7 @@ const ProductsDashboard = ({ route }) => {
 
       const transactionId = generateTransactionId();
       const amount = Number(boostAmount);
-      const mobileNumber = "9999999999"; // for testing / sandbox mode
-
-      console.log("🔄 Initializing PhonePe SDK...");
+      const mobileNumber = `${profile?.mobile}`;
       const sdkInit = await initPhonePeSDK();
 
       const paymentResult = await phonePeStartTransaction({
@@ -260,73 +271,7 @@ const ProductsDashboard = ({ route }) => {
       setBoostPopupVisible(false);
     }
   };
-  const RAZORPAY_TEST_KEY = 'rzp_test_ROBbgX7aCZ2Tjo';
-  // const handleBoost = async () => {
-  //   try {
-  //     if (!selectedProduct?.id) throw new Error("No product selected.");
-  //     if (!boostExpiry) throw new Error("Boost expiry date is not set.");
-  //     if (!boostAmount || isNaN(boostAmount) || Number(boostAmount) <= 0)
-  //       throw new Error("Boost amount must be valid.");
 
-  //     setBoostLoading(true);
-
-  //     // 🔢 Generate a unique transaction ID
-  //     const generateTransactionId = () => {
-  //       const timePart = Date.now();
-  //       const randomPart = Math.floor(1000 + Math.random() * 9000);
-  //       return `T${timePart}${randomPart}`;
-  //     };
-
-  //     const transactionId = generateTransactionId();
-  //     const amount = Number(boostAmount);
-  //     const mobileNumber = "9999999999"; // for testing / sandbox mode
-
-  //     console.log("🔄 Initializing PhonePe SDK...");
-  //     const sdkInit = await initPhonePeSDK();
-
-  //     if (!sdkInit?.success) {
-  //       console.log("❌ SDK initialization failed:", sdkInit?.message);
-  //       throw new Error("PhonePe SDK initialization failed");
-  //     }
-
-  //     console.log("✅ SDK Initialized Successfully");
-
-  //     // 🚀 Start the PhonePe transaction
-  //     console.log("📤 Starting PhonePe transaction...");
-  //     const paymentResult = await phonePeStartTransaction({
-  //       amount,
-  //       mobileNumber,
-  //       transactionId,
-  //     });
-
-  //     console.log("📥 PhonePe Payment Result:", paymentResult);
-
-  //     // ✅ Handle success
-  //     if (
-  //       paymentResult?.success === true ||
-  //       paymentResult?.data?.status === "SUCCESS" ||
-  //       paymentResult?.data?.state === "COMPLETED"
-  //     ) {
-  //       Alert.alert("✅ Success", "Payment completed successfully!");
-  //       await resetAndFetchProducts();
-  //     } 
-  //     // ❌ Handle failure
-  //     else {
-  //       const msg =
-  //         paymentResult?.data?.message ||
-  //         paymentResult?.message ||
-  //         "Transaction unsuccessful.";
-  //       Alert.alert("❌ Payment Failed", msg);
-  //     }
-
-  //   } catch (error) {
-  //     console.log("❌ Error in handleBoost:", error);
-  //     Alert.alert("Error", error?.message || "Something went wrong.");
-  //   } finally {
-  //     setBoostLoading(false);
-  //     setBoostPopupVisible(false);
-  //   }
-  // };
 
 
   const renderItem = ({ item }) => {

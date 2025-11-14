@@ -21,6 +21,7 @@ import { SelectList } from 'react-native-dropdown-select-list'
 // import ModalSelector from 'react-native-modal-selector';
 import BottomSheetSelector from '../../../../components/BottomSheetSelector/BottomSheetSelector';
 import { Dropdown } from 'react-native-element-dropdown';
+import debounce from 'lodash.debounce';
 
 const Product = () => {
 
@@ -28,7 +29,9 @@ const Product = () => {
     const { product = {} } = route.params || {};
 
     const [loading, setLoading] = useState(false)
-    const [orderLoading , setOrderLoading] = useState(false)
+    const [buttonPress, setButtonPress] = useState(false)
+
+    const [orderLoading, setOrderLoading] = useState(false)
     const { isEnabled } = useTheme();
     const containerStyle = isEnabled ? styles.darkContainer : styles.backgroundContainer;
     const textStyle = isEnabled ? styles.darkText : styles.lightText;
@@ -37,6 +40,8 @@ const Product = () => {
     const navigation = useNavigation();
     const [banner, setBanner] = useState(null);
     const [bannerPath, setBannerServerPath] = useState(null);
+    console.log('bannerPath :', bannerPath);
+
     const [images, setImages] = useState(
         (product?.galleries?.slice(0, 6).map(g => ({ uri: g.file_path, loading: false })) || [])
     );
@@ -64,8 +69,8 @@ const Product = () => {
     const [loadingSettings, setLoadingSettings] = useState(true);
     const [uploadBannerProgress, setUploadBannerProgress] = useState(0);
     const [uploadProgresses, setUploadProgresses] = useState({});
-    console.log('uploadProgresses :',uploadProgresses);
-    
+    console.log('uploadProgresses :', uploadProgresses);
+
     const [uploading, setUploading] = useState(false);
     const [keyboardHeight, setKeyboardHeight] = useState(0);
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
@@ -168,11 +173,11 @@ const Product = () => {
             const response = await setting(header);
             if (response) {
                 await AsyncStorage.setItem('Settings', JSON.stringify(response));
-                 setLoadingSettings(false);
+                setLoadingSettings(false);
             }
         } catch (error) {
             // Alert.alert('Error fetching settings:');
-             setLoadingSettings(false);
+            setLoadingSettings(false);
         }
     };
 
@@ -327,17 +332,19 @@ const Product = () => {
                 type: 'image/jpeg',
                 name: `banner_${Date.now()}.jpg`,
             });
-
+            setLoading(true)
             const response = await ImageUpload(formData, header, (progressEvent) => {
                 const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
                 setUploadBannerProgress(percent);
             });
 
-            if (response && response.path) {
+            if (response && response?.path) {
                 //   setBanner(response.path);
                 setBannerServerPath(response.path);
+                 setLoading(false)
             } else {
                 throw new Error(response.message || 'Upload failed');
+                //setLoading(false)
             }
 
         } catch (error) {
@@ -346,6 +353,8 @@ const Product = () => {
             // setBannerServerPath(null);
             // setUploadBannerProgress(0);
             // setBannerLoading(false);
+        }finally{
+            setLoading(false)
         }
     };
 
@@ -354,106 +363,106 @@ const Product = () => {
     }
 
     const multiSelectPhoto = async () => {
-    if (images.length >= 6) {
-        Alert.alert('Limit Reached', 'You can upload a maximum of 6 images.');
-        return;
-    }
-
-    const token = await AsyncStorage.getItem('userToken');
-    const header = `Bearer ${token}`;
-
-    const options = {
-        mediaType: 'photo',
-        includeBase64: false,
-        selectionLimit: 6 - images.length,
-        maxWidth: 800,
-        maxHeight: 800,
-        quality: 0.5,
-    };
-
-    launchImageLibrary(options, async (response) => {
-        if (response.didCancel) return;
-
-        const selectedAssets = response.assets;
-        if (!selectedAssets || selectedAssets.length === 0) return;
-
-        const assetsToUpload = selectedAssets.slice(0, 6 - images.length);
-
-        setUploading(true);
-
-        for (let i = 0; i < assetsToUpload.length; i++) {
-            const selectedImage = assetsToUpload[i];
-            const fileSizeMB = selectedImage.fileSize / (1024 * 1024); // convert bytes → MB
-            const tempId = Date.now() + i;
-
-            if (fileSizeMB > 10) {
-                Alert.alert(
-                    'File Too Large',
-                    `${selectedImage.fileName || 'One image'} exceeds 10 MB and will not be uploaded.`
-                );
-                continue; 
-            }
-
-            setImages(prev => [
-                ...prev,
-                { id: tempId, uri: null, loading: true },
-            ]);
-
-            const formData = new FormData();
-            formData.append('upload', {
-                uri:
-                    Platform.OS === 'ios'
-                        ? selectedImage.uri.replace('file://', '')
-                        : selectedImage.uri,
-                type: selectedImage.type || 'image/jpeg',
-                name: selectedImage.fileName || `product_${Date.now()}.jpg`,
-            });
-
-            try {
-                const uploadResponse = await ImageUpload(formData, header, (progressEvent) => {
-                    const percentCompleted = Math.round(
-                        (progressEvent.loaded * 100) / progressEvent.total
-                    );
-                    setUploadProgresses(prev => ({
-                        ...prev,
-                        [tempId]: percentCompleted,
-                    }));
-                });
-
-                console.log('uploadResponse:', uploadResponse);
-
-                if (uploadResponse?.path) {
-                    setImages(prevImages =>
-                        prevImages.map(img =>
-                            img.id === tempId
-                                ? { ...img, uri: uploadResponse.path, loading: false }
-                                : img
-                        )
-                    );
-                } else {
-                    throw new Error(uploadResponse?.message || 'Upload failed.');
-                }
-
-                setUploadProgresses(prev => {
-                    const updated = { ...prev };
-                    delete updated[tempId];
-                    return updated;
-                });
-
-            } catch (error) {
-                console.log('Upload failed:', error.message);
-                setImages(prev => prev.filter(img => img.id !== tempId));
-                setUploadProgresses(prev => {
-                    const updated = { ...prev };
-                    delete updated[tempId];
-                    return updated;
-                });
-            }
+        if (images.length >= 6) {
+            Alert.alert('Limit Reached', 'You can upload a maximum of 6 images.');
+            return;
         }
 
-        setUploading(false);
-    });
-};
+        const token = await AsyncStorage.getItem('userToken');
+        const header = `Bearer ${token}`;
+
+        const options = {
+            mediaType: 'photo',
+            includeBase64: false,
+            selectionLimit: 6 - images.length,
+            maxWidth: 800,
+            maxHeight: 800,
+            quality: 0.5,
+        };
+
+        launchImageLibrary(options, async (response) => {
+            if (response.didCancel) return;
+
+            const selectedAssets = response.assets;
+            if (!selectedAssets || selectedAssets.length === 0) return;
+
+            const assetsToUpload = selectedAssets.slice(0, 6 - images.length);
+
+            setUploading(true);
+
+            for (let i = 0; i < assetsToUpload.length; i++) {
+                const selectedImage = assetsToUpload[i];
+                const fileSizeMB = selectedImage.fileSize / (1024 * 1024); // convert bytes → MB
+                const tempId = Date.now() + i;
+
+                if (fileSizeMB > 10) {
+                    Alert.alert(
+                        'File Too Large',
+                        `${selectedImage.fileName || 'One image'} exceeds 10 MB and will not be uploaded.`
+                    );
+                    continue;
+                }
+
+                setImages(prev => [
+                    ...prev,
+                    { id: tempId, uri: null, loading: true },
+                ]);
+
+                const formData = new FormData();
+                formData.append('upload', {
+                    uri:
+                        Platform.OS === 'ios'
+                            ? selectedImage.uri.replace('file://', '')
+                            : selectedImage.uri,
+                    type: selectedImage.type || 'image/jpeg',
+                    name: selectedImage.fileName || `product_${Date.now()}.jpg`,
+                });
+
+                try {
+                    const uploadResponse = await ImageUpload(formData, header, (progressEvent) => {
+                        const percentCompleted = Math.round(
+                            (progressEvent.loaded * 100) / progressEvent.total
+                        );
+                        setUploadProgresses(prev => ({
+                            ...prev,
+                            [tempId]: percentCompleted,
+                        }));
+                    });
+
+                    console.log('uploadResponse:', uploadResponse);
+
+                    if (uploadResponse?.path) {
+                        setImages(prevImages =>
+                            prevImages.map(img =>
+                                img.id === tempId
+                                    ? { ...img, uri: uploadResponse.path, loading: false }
+                                    : img
+                            )
+                        );
+                    } else {
+                        throw new Error(uploadResponse?.message || 'Upload failed.');
+                    }
+
+                    setUploadProgresses(prev => {
+                        const updated = { ...prev };
+                        delete updated[tempId];
+                        return updated;
+                    });
+
+                } catch (error) {
+                    console.log('Upload failed:', error.message);
+                    setImages(prev => prev.filter(img => img.id !== tempId));
+                    setUploadProgresses(prev => {
+                        const updated = { ...prev };
+                        delete updated[tempId];
+                        return updated;
+                    });
+                }
+            }
+
+            setUploading(false);
+        });
+    };
 
 
 
@@ -498,77 +507,94 @@ const Product = () => {
 
 
 
-   const handleSaveProduct = async () => {
-    if (!description || description.trim().length === 0) {
-        Alert.alert('Alert', 'Description field is required.');
-        return false;
-    }
-
-    if (selectedCategory) {
-        if (subcategories.length > 0 && !selectedSubcategory) {
-            Alert.alert('Alert', 'Subcategory field is required.');
+    const handleSaveProduct = async () => {
+        if (isSavingDisabled || orderLoading) return;
+        if (!price || price.trim() === '') {
+            Alert.alert('Alert', 'Price field is required.');
             return false;
         }
-    }
 
-    const dynamicValues = Object.fromEntries(
-        Object.entries(dynamicFieldValues).map(([key, value]) => [
-            key,
-            Array.isArray(value) ? value.join(',') : value,
-        ])
-    );
+        // sirf digits
+        if (!/^\d+$/.test(price.trim())) {
+            Alert.alert('Alert', 'Enter a valid price (numbers only).');
+            return false;
+        }
+        if (!description || description.trim().length === 0) {
+            Alert.alert('Alert', 'Description field is required.');
+            return false;
+        }
+        if (!address || address.trim().length === 0) {
+            Alert.alert('Alert', 'Address field is required.');
+            return false;
+        }
 
-    dynamicValues.description = description || product?.description;
-    dynamicValues.address = address;
-    dynamicValues.price = price;
+        if (selectedCategory) {
+            if (subcategories.length > 0 && !selectedSubcategory) {
+                Alert.alert('Alert', 'Subcategory field is required.');
+                return false;
+            }
+        }
 
-    const productData = {
-        title: title || product?.title,
-        category: selectedCategory?.id,
-        subcategory: selectedSubcategory?.id,
-        state_id: selectedState?.value,
-        city_id: selectedCity?.value,
-        locality_id: selectedLocality?.value,
-        banner: bannerPath || product?.banner,
-        images: images.map(img => img.uri),
-        dynamic: dynamicValues,
+        const dynamicValues = Object.fromEntries(
+            Object.entries(dynamicFieldValues).map(([key, value]) => [
+                key,
+                Array.isArray(value) ? value.join(',') : value,
+            ])
+        );
+
+        dynamicValues.description = description || product?.description;
+        dynamicValues.address = address;
+        dynamicValues.price = price;
+
+        const productData = {
+            title: title || product?.title,
+            category: selectedCategory?.id,
+            subcategory: selectedSubcategory?.id,
+            state_id: selectedState?.value,
+            city_id: selectedCity?.value,
+            locality_id: selectedLocality?.value,
+            banner: bannerPath || product?.banner,
+            images: images.map(img => img.uri),
+            dynamic: dynamicValues,
+        };
+
+        const token = await AsyncStorage.getItem('userToken');
+        const header = `Bearer ${token}`;
+        console.log('productData :', productData);
+
+        try {
+            setOrderLoading(true);
+
+            let response;
+
+            if (product?.id) {
+                response = await updateProduct(product.id, productData, header);
+            } else {
+                response = await createProduct(productData, header);
+            }
+
+            if (response?.success) {
+                Alert.alert('Success', response?.message, [
+                    {
+                        text: 'OK',
+                        onPress: () => navigation.navigate('BottomTab', { screen: 'ProductsDashboard' })
+                        ,
+                    },
+                ]);
+            } else if (response?.errors) {
+                const errorMessages = Object.values(response.errors).flat().join('\n');
+                Alert.alert('Validation Error', errorMessages);
+            } else {
+                Alert.alert('Error', response?.message || 'Something went wrong');
+            }
+        } catch (error) {
+            Alert.alert('Error', 'Something went wrong');
+        } finally {
+            setOrderLoading(false);
+        }
     };
+    const handleSaveProductDebounced = debounce(handleSaveProduct, 1000);
 
-    const token = await AsyncStorage.getItem('userToken');
-    const header = `Bearer ${token}`;
-console.log('productData :',productData);
-
-    try {
-        setOrderLoading(true); 
-
-        let response;
-
-        if (product?.id) {
-            response = await updateProduct(product.id, productData, header);
-        } else {
-            response = await createProduct(productData, header);
-        }
-
-        if (response?.success) {
-            Alert.alert('Success', response?.message, [
-                {
-                    text: 'OK',
-                    onPress: () => navigation.navigate('BottomTab', { screen: 'ProductsDashboard' })
-,
-                },
-            ]);
-        } else if (response?.errors) {
-            const errorMessages = Object.values(response.errors).flat().join('\n');
-            Alert.alert('Validation Error', errorMessages);
-        } else {
-            Alert.alert('Error', response?.message || 'Something went wrong');
-        }
-    } catch (error) {
-        Alert.alert('Error', 'Something went wrong');
-    } finally {
-        setOrderLoading(false); 
-    }
-};
     const showDatePicker = (fieldName) => {
         setCurrentDateField(fieldName);
         setDatePickerVisibility(true);
@@ -583,7 +609,7 @@ console.log('productData :',productData);
         hideDatePicker();
     };
 
-   const renderProductImage = ({ item, index }) => {
+    const renderProductImage = ({ item, index }) => {
         const isStillLoading =
             item.loading || (uploadProgresses[index] != null && uploadProgresses[index] < 100);
 
@@ -670,8 +696,7 @@ console.log('productData :',productData);
     }, []);
 
 
-    const isSavingDisabled = orderLoading || bannerLoading || uploading;
-
+    const isSavingDisabled = buttonPress || orderLoading || bannerLoading || uploading;
 
     return (
         <Container lightContent={isEnabled} paddingBottomContainer={true} safeAreaView safeAreaViewHeader conatinerStyle={containerStyle}>
@@ -1073,13 +1098,18 @@ console.log('productData :',productData);
                             <Text style={[styles.textInputTitle, textStyle]}>Price</Text>
 
                             <InvoiceTextInput
-                                placeholder={'Enter Price'}
+                                placeholder="Enter Price"
                                 style={[styles.textInput, containerStyle]}
                                 placeholderTextColor={isEnabled ? '#fff' : 'gray'}
                                 color={isEnabled ? '#fff' : '#121212'}
                                 keyboardType="number-pad"
                                 value={price}
-                                onChangeText={(val) => setMain({ ...main, price: val })} />
+                                onChangeText={(val) => {
+                                    const numericValue = val.replace(/[^0-9]/g, '');
+                                    setMain(prev => ({ ...prev, price: numericValue }));
+                                }}
+                            />
+
 
                         </View>
                         <View style={[styles.textInputWrap, { paddingBottom: 10 }]}>
@@ -1149,7 +1179,7 @@ console.log('productData :',productData);
                     isSavingDisabled && { opacity: 0.6 },
                 ]}
                 styletext={styles.buttonText}
-                onPress={handleSaveProduct}
+                onPress={handleSaveProductDebounced}
                 disabled={isSavingDisabled}
             />
             <BottomSheetSelector

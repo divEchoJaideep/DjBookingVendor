@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { Alert, View } from 'react-native';
+import { View } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
@@ -9,53 +9,65 @@ import AccountSetting from '../screen/Settings/AccountSetting/AccountSetting';
 import BankDetails from '../screen/bankDetails/BankDetails';
 import product from '../screen/Product/addProduct/Product';
 import orderProductsDetails from '../screen/Order/orderProductsDetail/orderProductsDetails';
-import orderDashboard from '../screen/Order/orderDashboard/orderDashboard';
-import ProductDetails from '../screen/Product/ProductDetails/ProductDetails';
-import { profile } from '../api/api';
-import ActiveIndicator from '../../components/ActriveIndicator/ActiveIndicator';
-import { AuthContext } from '../context/AuthContext';
-import Job from '../screen/Settings/Job/Job';
 import ProductsDashboard from '../screen/Product/ProductDashboard/ProductsDashboard';
-import Notification from '../screen/Settings/Notification/Notification';
-import OrderTabs from './OrderTab';
+import ProductDetails from '../screen/Product/ProductDetails/ProductDetails';
 import OrderMainScreen from '../screen/Order/orderDashboard/OrderMainScreen';
 import Chats from '../screen/Message/Chats/Chats';
-import NetworkError from '../../components/NetworkSkeleton/NetworkSkeleton';
+import Notification from '../screen/Settings/Notification/Notification';
+import Job from '../screen/Settings/Job/Job';
 import Terms from '../screen/Terms&Conditions/Terms';
 import Pricing from '../screen/Pricing/Pricing';
+
+import ActiveIndicator from '../../components/ActriveIndicator/ActiveIndicator';
+import NetworkError from '../../components/NetworkSkeleton/NetworkSkeleton';
+
+import { profile } from '../api/api';
+import { AuthContext } from '../context/AuthContext';
 
 const Stack = createNativeStackNavigator();
 
 const AppStack = () => {
   const { logout } = useContext(AuthContext);
+
   const [initialRoute, setInitialRoute] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [networkError, setNetworkError] = useState(false);
 
-
   const determineInitialRoute = async () => {
+    setLoading(true);
     setNetworkError(false);
     setInitialRoute(null);
+
     try {
       const token = await AsyncStorage.getItem('userToken');
+
+      if (!token) {
+        setInitialRoute('AccountSetting');
+        return;
+      }
+
       const header = `Bearer ${token}`;
       const userProfile = await profile(header);
-      console.log('userProfile :', userProfile);
 
-      if (userProfile.data?.name && userProfile.data?.name.trim() !== '') {
+      console.log("userProfile :", userProfile);
+
+      const name = userProfile?.data?.name?.trim();
+
+      if (name && name !== "") {
         setInitialRoute('BottomTab');
       } else {
         setInitialRoute('AccountSetting');
       }
 
-
     } catch (error) {
-      // console.error(error);
+      console.log("Error fetching profile: ", error);
       setNetworkError(true);
+
     } finally {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(state => {
       if (!state.isConnected) {
@@ -77,6 +89,7 @@ const AppStack = () => {
   if (loading || initialRoute === null) {
     return <ActiveIndicator fullScreen />;
   }
+
   if (networkError) {
     return <NetworkError onRetry={determineInitialRoute} />;
   }

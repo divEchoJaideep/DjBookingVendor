@@ -1,10 +1,14 @@
 import axios from "axios";
 import { globalLogout } from "../utlis/globalLogout";
 
-export const commonrequest = async (methods, url, body, header) => {
-  let config = {
-    method: methods,
-    url,
+// Flag to ensure logout is triggered only once
+let isLoggingOut = false;
+
+// Common API request function
+export const commonrequest = async (method, url, body, header) => {
+  const config = {
+    method: method,
+    url: url,
     headers: header
       ? { Authorization: header, Accept: "application/json" }
       : { "Content-Type": "application/json" },
@@ -16,20 +20,23 @@ export const commonrequest = async (methods, url, body, header) => {
     const response = await axios(config);
     return response.data;
   } catch (error) {
+    // Server responded with a status code
     if (error.response) {
       console.log("Error Response:", error.response.data, error.response.status);
 
-      if (error.response.status === 401) {
-              await globalLogout();
-
+      // Handle 401 Unauthorized once
+      if (error.response.status === 401 && !isLoggingOut) {
+        isLoggingOut = true;
+        await globalLogout();
+        isLoggingOut = false; // Reset after logout completes
         return {
           error: true,
-          unauthorized: true,   
+          unauthorized: true,
           message: error.response.data?.message || "Unauthorized. Please login again.",
         };
-        
       }
 
+      // Other server errors
       return {
         error: true,
         status: error.response.status,
@@ -37,18 +44,22 @@ export const commonrequest = async (methods, url, body, header) => {
       };
     }
 
+    // Network Error
     if (error.message === "Network Error") {
       return { error: true, message: "Network Error: Please check your internet connection." };
     }
 
+    // Timeout Error
     if (error.code === "ECONNABORTED") {
       return { error: true, message: "Request timed out. Please try again." };
     }
 
+    // Unknown Error
     return { error: true, message: error.message || "Something went wrong." };
   }
 };
 
+// Common File Upload function
 
 export const commonFileUpload = async (methods, url, body, header) => {
   let config = {
