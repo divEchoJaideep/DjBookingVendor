@@ -46,8 +46,6 @@ const ProductsDashboard = ({ route }) => {
   const [maxBoosstPrice, setMaxBoostPrice] = useState(0);
   const [boostLoading, setBoostLoading] = useState(false);
   const [profile, setProfile] = useState({});
-  console.log('profile :', profile);
-
   const navigation = useNavigation();
   const grayContainer = isEnabled ? styles.darkgray : styles.lightContainer;
   const containerStyle = isEnabled ? styles.darkContainer : styles.lightContainer;
@@ -55,13 +53,13 @@ const ProductsDashboard = ({ route }) => {
 
   useEffect(() => {
     resetAndFetchProducts();
-  }, [])
+  }, [searchQuery])
 
-  useFocusEffect(
-    useCallback(() => {
-      resetAndFetchProducts();
-    }, [searchQuery])
-  )
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     resetAndFetchProducts();
+  //   }, [searchQuery])
+  // )
 
   const resetAndFetchProducts = async () => {
     setPage(1);
@@ -70,11 +68,11 @@ const ProductsDashboard = ({ route }) => {
   };
 
   const fetchProducts = async (customPage = page, isReset = false) => {
-    if (loading || refreshing || (productData.last_page && customPage > productData.last_page)) {
-      return;
-    }
+
+    if (loading || refreshing) return;
 
     setLoading(true);
+
     try {
       const token = await AsyncStorage.getItem('userToken');
       const header = `Bearer ${token}`;
@@ -89,17 +87,17 @@ const ProductsDashboard = ({ route }) => {
           items: isReset ? items : [...prev.items, ...items]
         }));
 
-        setPage(customPage + 1);
+        setPage(customPage + 1);  // → NEXT PAGE SET CAREFULLY
       }
-    } catch (error) {
-      Alert.alert("Error fetching products:", error.message || 'Unknown error');
+    } catch (err) {
+      console.log("Fetch error:", err);
     } finally {
       setLoading(false);
     }
   };
 
   const onRefresh = async () => {
-    if (refreshing) return; // prevent spam taps
+    if (refreshing) return;
     setRefreshing(true);
     try {
       await resetAndFetchProducts();
@@ -107,7 +105,7 @@ const ProductsDashboard = ({ route }) => {
         // ToastAndroid.show('Listing Refreshed!', ToastAndroid.SHORT);
       }
     } catch (err) {
-      Alert.alert('Error', 'Failed to refresh listings.');
+      // Alert.alert('Error', 'Failed to refresh listings.');
     } finally {
       setRefreshing(false);
     }
@@ -181,10 +179,7 @@ const ProductsDashboard = ({ route }) => {
         Alert.alert("Notice", "This product is already boosted.");
         return;
       }
-
       getStoredUser();
-
-
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
@@ -203,21 +198,9 @@ const ProductsDashboard = ({ route }) => {
   };
 
 
-  const handlePayment = async (packageItem) => {
-    try {
-      const paymentData = await makeRazorpayPayment(packageItem, RAZORPAY_TEST_KEY, {
-        email: 'gaurav.kumar@example.com',
-        contact: '9191919191',
-        name: 'Gaurav Kumar'
-      });
-      // call your API or update DB here
-
-    } catch (error) {
-      // console.log('Payment failed:', error);
-    }
-  };
-
   const handleBoost = async () => {
+    setBoostPopupVisible(false);
+
     try {
       if (!selectedProduct?.id) throw new Error("No product selected.");
       if (!boostExpiry) throw new Error("Boost expiry date is not set.");
@@ -235,42 +218,68 @@ const ProductsDashboard = ({ route }) => {
       const transactionId = generateTransactionId();
       const amount = Number(boostAmount);
       const mobileNumber = `${profile?.mobile}`;
-      const sdkInit = await initPhonePeSDK();
+
+      await initPhonePeSDK();
 
       const paymentResult = await phonePeStartTransaction({
         amount,
         mobileNumber,
         transactionId,
       });
-      if (paymentResult?.data?.status === "SUCCESS") {
+      console.log('paymentResult :', paymentResult);
+
+      if (paymentResult?.data?.status == "SUCCESS") {
+        setTimeout(() => {
+          Alert.alert(
+            "Payment Successful",
+            paymentResult?.data?.message || "Your payment was completed successfully."
+          );
+        }, 100);
+
         const token = await AsyncStorage.getItem('userToken');
         const header = `Bearer ${token}`;
+
         const data = {
           listing_id: selectedProduct.id,
           amount: Number(boostAmount),
           expire_date: boostExpiry,
         };
+
         const result = await boostOrder(data, header);
 
         if (result?.success) {
-          Alert.alert("Success", result.message);
+          Alert.alert("Boost Success", result.message);
           setBoostAmount('');
           setSelectedProduct(null);
           resetAndFetchProducts();
           setMaxBoostPrice(0);
         } else {
-          throw new Error(result.message || "Something went wrong with the boost operation.");
+          Alert.alert("Boost Failed", result.message || "Something went wrong!");
         }
+
+      }
+      else if (paymentResult?.data?.status == "FAILURE") {
+
+        setTimeout(() => {
+          Alert.alert(
+            "Payment Failed",
+            paymentResult?.data?.error || "Payment failed. Please try again."
+          );
+        }, 100);
+
+        return;
       }
 
 
     } catch (error) {
-      // Alert.alert("Alert", error.message || "Something went wrong while boosting the product.");
+      Alert.alert("Error", error.message || "Something went wrong.");
     } finally {
       setBoostLoading(false);
-      setBoostPopupVisible(false);
+      // setBoostPopupVisible(false);
+      setBoostAmount('');
     }
   };
+
 
 
 
@@ -379,15 +388,20 @@ const ProductsDashboard = ({ route }) => {
         {/* <View style={styles.firstButton}> */}
         <FlatList
           data={productData.items}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.id.toString()}
           renderItem={renderItem}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 20 }}
-          onEndReached={() => fetchProducts()}
           onEndReachedThreshold={0.5}
           ListFooterComponent={renderFooter}
           refreshing={refreshing}
           onRefresh={onRefresh}
+          onEndReached={() => {
+            if (!loading && page <= productData.last_page) {
+              fetchProducts(page);
+            }
+          }}
+
           ListEmptyComponent={
             !loading &&
             <View style={styles.centeredWrap}>

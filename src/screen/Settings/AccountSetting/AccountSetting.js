@@ -15,27 +15,28 @@ const AccountSetting = () => {
     const [backButton, setBackButton] = useState(false);
     const containerStyle = isEnabled ? styles.darkContainer : styles.lightContainer;
     const textStyle = isEnabled ? styles.darkText : styles.lightText;
-useFocusEffect(
-  useCallback(() => {
-    loadProfile();
-  }, [])
-);
+    useFocusEffect(
+        useCallback(() => {
+            loadProfile();
+        }, [])
+    );
 
     const loadProfile = async () => {
         try {
+            const token = await AsyncStorage.getItem('userToken');
             const fetchProfile = await AsyncStorage.getItem('user');
             if (fetchProfile) {
                 const parsedProfile = JSON.parse(fetchProfile);
                 const profileImageURL = parsedProfile.profile_picture;
 
-                if (parsedProfile.email) {
+                if (token && parsedProfile.email) {
                     setBackButton(true);
                 }
             } else {
                 Alert.alert('No profile data found in ');
             }
         } catch (error) {
-            Alert.alert('Something went wrong. Please try again.');
+            // Alert.alert('Something went wrong. Please try again.');
         }
     };
 
@@ -43,9 +44,9 @@ useFocusEffect(
 
     return (
         <Container lightContent={isEnabled} paddingBottomContainer={true} safeAreaView safeAreaViewHeader conatinerStyle={[styles.container, containerStyle]}>
-            <View style={{paddingHorizontal:20}}  >
+            <View style={{ paddingHorizontal: 20 }}  >
                 <TopHeader
-                    leftImage={backButton}
+                    leftImage={backButton  }
                     onLeftPress={() => navigation.goBack()}
                     onTitletextPress={() => navigation.goBack()}
                     titleText

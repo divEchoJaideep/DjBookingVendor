@@ -23,7 +23,7 @@ const NetworkError = ({ cardCount = 1 }) => {
         ToastAndroid.SHORT,
         ToastAndroid.CENTER
       );
-    }, 10000);
+    }, 7000);
 
     return () => clearInterval(interval); 
   }, []);

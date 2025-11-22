@@ -239,7 +239,7 @@ const SettingDashboard = () => {
                                     tintColor={isEnabled ? '#fff' : '#121212'}
                                 />
                             </View>
-                            <Text style={[styles.settingText, textStyle]}>Pricing</Text>
+                            <Text style={[styles.settingText, textStyle]}>Refund Policy</Text>
                         </View>
                         <Image
                             source={require('../../../Images/next.png')}

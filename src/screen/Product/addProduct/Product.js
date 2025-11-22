@@ -339,9 +339,9 @@ const Product = () => {
             });
 
             if (response && response?.path) {
-                //   setBanner(response.path);
+                setBanner(response.path);
                 setBannerServerPath(response.path);
-                 setLoading(false)
+                setLoading(false)
             } else {
                 throw new Error(response.message || 'Upload failed');
                 //setLoading(false)
@@ -353,7 +353,7 @@ const Product = () => {
             // setBannerServerPath(null);
             // setUploadBannerProgress(0);
             // setBannerLoading(false);
-        }finally{
+        } finally {
             setLoading(false)
         }
     };
@@ -535,6 +535,20 @@ const Product = () => {
             }
         }
 
+        // Fiels VAlidation
+        for (let i = 0; i < fields.length; i++) {
+            const field = fields[i];
+            console.log('field :', field);
+            const key = field.name;
+            const value = dynamicFieldValues[key];
+            const isRequired = true;
+            if (isRequired && (!value || value.length === 0)) {
+                Alert.alert("Missing Field", `${field.label || key} is required.`);
+                return false;
+            }
+        }
+
+
         const dynamicValues = Object.fromEntries(
             Object.entries(dynamicFieldValues).map(([key, value]) => [
                 key,
@@ -553,14 +567,12 @@ const Product = () => {
             state_id: selectedState?.value,
             city_id: selectedCity?.value,
             locality_id: selectedLocality?.value,
-            banner: bannerPath || product?.banner,
+            banner: bannerPath ? bannerPath : product?.banner,
             images: images.map(img => img.uri),
             dynamic: dynamicValues,
         };
-
         const token = await AsyncStorage.getItem('userToken');
         const header = `Bearer ${token}`;
-        console.log('productData :', productData);
 
         try {
             setOrderLoading(true);

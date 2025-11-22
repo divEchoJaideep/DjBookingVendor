@@ -19,8 +19,8 @@ import Terms from '../screen/Terms&Conditions/Terms';
 import Pricing from '../screen/Pricing/Pricing';
 
 import ActiveIndicator from '../../components/ActriveIndicator/ActiveIndicator';
-import NetworkError from '../../components/NetworkSkeleton/NetworkSkeleton';
-
+import NetworkErrorPopup from '../../components/NetworkSkeleton/NetworkErrorPopup';
+import NetworkError from './../../components/NetworkSkeleton/NetworkSkeleton';
 import { profile } from '../api/api';
 import { AuthContext } from '../context/AuthContext';
 
@@ -32,6 +32,7 @@ const AppStack = () => {
   const [initialRoute, setInitialRoute] = useState(null);
   const [loading, setLoading] = useState(true);
   const [networkError, setNetworkError] = useState(false);
+  console.log('initialRoute :', initialRoute);
 
   const determineInitialRoute = async () => {
     setLoading(true);
@@ -40,20 +41,14 @@ const AppStack = () => {
 
     try {
       const token = await AsyncStorage.getItem('userToken');
+      // const header = `Bearer ${token}`;
+      // const userProfile = await profile(header);
+      // console.log("userProfile :", userProfile);
+      // const name = userProfile?.data?.name?.trim();
+      const user = await AsyncStorage.getItem('user');
+      const name = JSON.parse(user).name;
 
-      if (!token) {
-        setInitialRoute('AccountSetting');
-        return;
-      }
-
-      const header = `Bearer ${token}`;
-      const userProfile = await profile(header);
-
-      console.log("userProfile :", userProfile);
-
-      const name = userProfile?.data?.name?.trim();
-
-      if (name && name !== "") {
+      if (token && name) {
         setInitialRoute('BottomTab');
       } else {
         setInitialRoute('AccountSetting');
@@ -67,6 +62,8 @@ const AppStack = () => {
       setLoading(false);
     }
   };
+
+
 
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(state => {
@@ -95,6 +92,16 @@ const AppStack = () => {
   }
 
   return (
+    //  <>
+    //   <NetworkErrorPopup
+    //     visible={networkError}
+    //     onRetry={() => {
+    //       setNetworkError(false);
+    //       determineInitialRoute();
+    //     }}
+    //     onClose={() => setNetworkError(false)}
+    //   />
+
     <Stack.Navigator initialRouteName={initialRoute} screenOptions={{ headerShown: false }}>
       <Stack.Screen name="BottomTab" component={BottomTab} />
       <Stack.Screen name="AccountSetting" component={AccountSetting} />
@@ -110,6 +117,7 @@ const AppStack = () => {
       <Stack.Screen name='Terms' component={Terms} />
       <Stack.Screen name='Pricing' component={Pricing} />
     </Stack.Navigator>
+    // </>
   );
 };
 
